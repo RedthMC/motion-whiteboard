@@ -11,12 +11,14 @@ export class AppStateManager {
     constructor() {
         this.camera = new Camera();
         this.elementManager = new ElementManager();
-        this.toolManager = new ToolManager(this);
-        this.inputHandler = new InputHandler(this);
+        this.inputHandler = new InputHandler(this.camera);
+        this.toolManager = new ToolManager(this.camera, this.inputHandler, this.elementManager);
+
+
     }
 }
 
-class ElementManager implements Iterable<Element> {
+export class ElementManager implements Iterable<Element> {
     elements: Element[] = $state([]);
 
     [Symbol.iterator]() {
@@ -44,67 +46,110 @@ class ElementManager implements Iterable<Element> {
 
 
 export type InputEventType = "pointerdown" | "pointermove" | "pointerup" | "wheel";
-export type InputEventCallback<T extends Event> = (event: T) => void;
+export type InputEventCallback<T extends InputEvent> = (event: T) => void;
 
-class InputHandler {
-    readonly app: AppStateManager;
+export type PointerWheelEvent = {
+    type: "wheel";
+    mousePos: MousePos;
+    deltaY: number;
+};
+
+
+export type PointerDownEvent = {
+    type: "pointerdown";
+    button: number;
+    mousePos: MousePos;
+};
+
+export type PointerMoveEvent = {
+    type: "pointermove";
+    button: number;
+    mousePos: MousePos;
+};
+
+export type PointerUpEvent = {
+    type: "pointerup";
+    button: number;
+    mousePos: MousePos;
+};
+
+
+export type InputEvent = PointerDownEvent | PointerMoveEvent | PointerUpEvent | PointerWheelEvent;
+
+export class InputHandler {
+    private readonly camera: Camera;
     private subscribers: Map<InputEventType, Set<InputEventCallback<any>>> = new Map();
 
-    constructor(app: AppStateManager) {
-        this.app = app;
+    constructor(camera: Camera) {
+        this.camera = camera;
     }
 
-    private getMousePos(event: PointerEvent): MousePos {
-        const mouseRawPos = { x: event.pageX, y: event.pageY };
-        const mousePosOnCanvas = this.app.camera.mapScreenPositionToCanvas(mouseRawPos);
-        return { mousePosOnCanvas, mouseRawPos };
+    private getMousePos(event: MouseEvent): MousePos {
+        const mouseRawPos = { x: event.clientX, y: event.clientY };
+        const mousePosOnCanvas = this.camera.mapScreenPositionToCanvas(mouseRawPos);
+        return { onCanvas: mousePosOnCanvas, raw: mouseRawPos };
     }
 
-    subscribe<T extends Event>(type: InputEventType, callback: InputEventCallback<T>): () => void {
-        if (!this.subscribers.has(type)) {
-            this.subscribers.set(type, new Set());
+    subscribe<T extends InputEvent>(type: InputEventType, callback: InputEventCallback<T>): () => void {
+        let callbacks = this.subscribers.get(type);
+        if (!callbacks) {
+            callbacks = new Set();
+            this.subscribers.set(type, callbacks);
         }
-        this.subscribers.get(type)!.add(callback);
+        callbacks.add(callback);
 
-        return () => {
+        return () => { // unsubscribe
             const callbacks = this.subscribers.get(type);
-            if (callbacks) {
-                callbacks.delete(callback);
-                if (callbacks.size === 0) {
-                    this.subscribers.delete(type);
-                }
+            if (!callbacks) {
+                return;
+            }
+            callbacks.delete(callback);
+            if (callbacks.size === 0) {
+                this.subscribers.delete(type);
             }
         };
     }
 
-    private notifySubscribers(type: InputEventType, event: Event) {
-        const callbacks = this.subscribers.get(type);
+    private notifySubscribers(event: InputEvent) {
+        const callbacks = this.subscribers.get(event.type);
         if (callbacks) {
             callbacks.forEach(callback => callback(event));
         }
     }
 
     onPointerDown(event: PointerEvent) {
-        this.app.toolManager.onMouseDown(event.button, this.getMousePos(event));
-        this.notifySubscribers("pointerdown", event);
+        this.notifySubscribers({
+            type: "pointerdown",
+            button: event.button,
+            mousePos: this.getMousePos(event),
+        });
         console.log("down", event.button);
     }
 
     onPointerMove(event: PointerEvent) {
-        this.app.toolManager.onMouseMove(event.button, this.getMousePos(event));
-        this.notifySubscribers("pointermove", event);
+        this.notifySubscribers({
+            type: "pointermove",
+            button: event.button,
+            mousePos: this.getMousePos(event),
+        });
     }
 
     onPointerUp(event: PointerEvent) {
-        this.app.toolManager.onMouseUp(event.button, this.getMousePos(event));
-        this.notifySubscribers("pointerup", event);
+        this.notifySubscribers({
+            type: "pointerup",
+            button: event.button,
+            mousePos: this.getMousePos(event),
+        });
         console.log("up", event.button);
     }
 
     onWheel(event: WheelEvent) {
         event.preventDefault(); // prevent browser ctrl+scroll
-        this.app.toolManager.processZoom(event.pageX, event.pageY, event.deltaY);
-        this.notifySubscribers("wheel", event);
+        this.notifySubscribers({
+            type: "wheel",
+            mousePos: this.getMousePos(event),
+            deltaY: event.deltaY,
+        });
     }
 
     onContextMenu(event: MouseEvent) {

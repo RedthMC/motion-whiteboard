@@ -1,17 +1,27 @@
 import { getStrokePoints, type StrokePoint } from "perfect-freehand";
 import { expandRect, inRect, intersectRect, rect, subtract, type Rect, type Vec2 } from "./vector";
 import type { Element, Stroke } from "../elements";
-import type { AppStateManager } from "./datastorage.svelte";
+import type { InputHandler, PointerDownEvent, PointerMoveEvent, PointerUpEvent, PointerWheelEvent } from "./datastorage.svelte";
+import type { Camera } from "./camera.svelte";
 
 export class ToolManager {
-    private readonly app: AppStateManager;
+    private readonly camera: Camera;
+    private readonly inputHandler: InputHandler;
+    private readonly elementManager: ElementContext;
     private readonly panningTool: Pan;
     private tool: Tool;
 
-    constructor(app: AppStateManager) {
-        this.app = app;
-        this.tool = new Brush(app);
-        this.panningTool = new Pan(app);
+    constructor(camera: Camera, inputHandler: InputHandler, elementManager: ElementContext) {
+        this.camera = camera;
+        this.inputHandler = inputHandler;
+        this.elementManager = elementManager;
+        this.panningTool = new Pan(this.camera);
+        this.tool = new Brush(this.elementManager);
+
+        this.inputHandler.subscribe("pointerdown", this.onMouseDown.bind(this));
+        this.inputHandler.subscribe("pointermove", this.onMouseMove.bind(this));
+        this.inputHandler.subscribe("pointerup", this.onMouseUp.bind(this));
+        this.inputHandler.subscribe("wheel", this.processZoom.bind(this));
     }
 
     switchTool(toolName: string) {
@@ -21,49 +31,56 @@ export class ToolManager {
     private createTool(toolName: string): Tool {
         switch (toolName) {
             case "brush":
-                return new Brush(this.app);
+                return new Brush(this.elementManager);
             case "eraser":
-                return new Eraser(this.app);
+                return new Eraser(this.elementManager);
             default:
-                return new Brush(this.app);
+                return new Brush(this.elementManager);
         }
     }
 
-    processZoom(x: number, y: number, scrollDown: number) {
-        if (scrollDown > 0) {
-            this.app.camera.zoomAt({ x, y, z: 0.8 });
-        } else if (scrollDown < 0) {
-            this.app.camera.zoomAt({ x, y, z: 1.25 });
+    processZoom(event: PointerWheelEvent) {
+        const { x, y } = event.mousePos.raw;
+
+        if (event.deltaY > 0) {
+            this.camera.zoomAt({ x, y, z: 0.8 });
+        } else if (event.deltaY < 0) {
+            this.camera.zoomAt({ x, y, z: 1.25 });
         }
     }
 
-    onMouseDown(button: number, position: MousePos) {
-        if (button == LEFT_MOUSE_BUTTON) {
-            this.tool.onDown(position);
-        } else if (button == MID_MOUSE_BUTTON) {
-            this.panningTool.onDown(position);
+    onMouseDown(event: PointerDownEvent) {
+        if (event.button == LEFT_MOUSE_BUTTON) {
+            this.tool.onDown(event.mousePos);
+        } else if (event.button == MID_MOUSE_BUTTON) {
+            this.panningTool.onDown(event.mousePos);
         }
     }
 
-    onMouseMove(button: number, position: MousePos) {
+    onMouseMove(event: PointerMoveEvent) {
         // they both can handle mouse pure moving
-        this.tool.onMove(position);
-        this.panningTool.onMove(position);
+        this.tool.onMove(event.mousePos);
+        this.panningTool.onMove(event.mousePos);
     }
 
-    onMouseUp(button: number, position: MousePos) {
-        this.tool.onUp(position);
-        this.panningTool.onUp(position);
-        // if (button == LEFT_MOUSE_BUTTON) {
-        // } else if (button == MID_MOUSE_BUTTON) {
-        // }
+    onMouseUp(event: PointerUpEvent) {
+        this.tool.onUp(event.mousePos);
+        this.panningTool.onUp(event.mousePos);
     }
 }
 
 export type MousePos = {
-    mousePosOnCanvas: Vec2;
-    mouseRawPos: Vec2;
+    onCanvas: Vec2;
+    raw: Vec2;
 };
+
+export interface ElementContext {
+    addElement<T extends Element>(element: T): T;
+    filterUpElements(predicate: (element: Element) => unknown): void;
+    findElement(predicate: (element: Element) => unknown): Element | undefined;
+    findElements(predicate: (element: Element) => unknown): Element[];
+}
+
 interface Tool {
     onMove(position: MousePos): void;
     onDown(position: MousePos): void;
@@ -71,8 +88,8 @@ interface Tool {
 }
 
 class Select implements Tool {
-    private readonly app: AppStateManager;
-    constructor(app: AppStateManager) {
+    private readonly app: ElementContext;
+    constructor(app: ElementContext) {
         this.app = app;
     }
 
@@ -80,7 +97,7 @@ class Select implements Tool {
     private hovering: Element | undefined;
     private status: "framing" | "moving" | undefined;
     private selection: Element[] = [];
-    
+
 
     onDown(position: MousePos): void {
         if (this.hovering) {
@@ -92,7 +109,7 @@ class Select implements Tool {
             this.status = "framing";
             this.selection = [];
         }
-        this.initPosRaw = position.mouseRawPos;
+        this.initPosRaw = position.raw;
     }
 
     isHovering(element: Element, position: Vec2) {
@@ -105,15 +122,15 @@ class Select implements Tool {
 
     onMove(position: MousePos): void {
         if (!this.status) {
-            this.hovering = this.app.elementManager.findElement(e => this.isHovering(e, position.mousePosOnCanvas));
+            this.hovering = this.app.findElement(e => this.isHovering(e, position.onCanvas));
             return;
         }
         this.hovering = undefined;
         if (!this.initPosRaw) return;
 
         if (this.status == "framing") {
-            const frame = rect(this.initPosRaw, position.mousePosOnCanvas);
-            this.selection = this.app.elementManager.findElements(e => this.isFramed(e, frame));
+            const frame = rect(this.initPosRaw, position.onCanvas);
+            this.selection = this.app.findElements(e => this.isFramed(e, frame));
         } else {
             // moving
             // need selection border, calc offset <- onclick, add offset
@@ -126,21 +143,21 @@ class Select implements Tool {
 }
 
 class Brush implements Tool {
-    private readonly app: AppStateManager;
-    constructor(app: AppStateManager) {
-        this.app = app;
+    private readonly elementManager: ElementContext;
+    constructor(elementManager: ElementContext) {
+        this.elementManager = elementManager;
     }
 
     private drawingStroke: { initialPosition: Vec2, points: Vec2[], stroke: Stroke; } | null = null;
 
     onDown(position: MousePos) {
         this.drawingStroke = {
-            initialPosition: position.mousePosOnCanvas,
+            initialPosition: position.onCanvas,
             points: [{ x: 0, y: 0 }],
-            stroke: this.app.elementManager.addElement({
+            stroke: this.elementManager.addElement({
                 type: "stroke",
                 id: "a",
-                position: position.mousePosOnCanvas,
+                position: position.onCanvas,
                 path: "M0,0Z",
                 boundingBox: { left: -5, top: -5, right: 5, bottom: 5 },
             }),
@@ -150,7 +167,7 @@ class Brush implements Tool {
     onMove(position: MousePos) {
         if (!this.drawingStroke) return; // "drawingStroke is null" means "mouse is not down"
 
-        const pointOffset = subtract(position.mousePosOnCanvas, this.drawingStroke.initialPosition);
+        const pointOffset = subtract(position.onCanvas, this.drawingStroke.initialPosition);
         this.drawingStroke.points.push(pointOffset);
         this.drawingStroke.stroke.boundingBox = expandRect(this.drawingStroke.stroke.boundingBox, pointOffset);
         this.drawingStroke.stroke.path = getSvgPathFromStrokePoints(
@@ -166,23 +183,23 @@ class Brush implements Tool {
 }
 
 class Pan implements Tool {
-    private readonly app: AppStateManager;
-    constructor(app: AppStateManager) {
-        this.app = app;
+    private readonly camera: Camera;
+    constructor(camera: Camera) {
+        this.camera = camera;
     }
 
     private initPosRaw: Vec2 | null = null;
 
     onDown(position: MousePos): void {
-        this.initPosRaw = position.mouseRawPos;
+        this.initPosRaw = position.raw;
     }
 
     onMove(position: MousePos): void {
         if (!this.initPosRaw) return;
 
-        const pos = subtract(this.initPosRaw, position.mouseRawPos);
-        this.app.camera.moveBy(pos);
-        this.initPosRaw = position.mouseRawPos;
+        const pos = subtract(this.initPosRaw, position.raw);
+        this.camera.moveBy(pos);
+        this.initPosRaw = position.raw;
     }
 
     onUp(position: MousePos): void {
@@ -191,15 +208,15 @@ class Pan implements Tool {
 }
 
 class Eraser implements Tool {
-    private readonly app: AppStateManager;
-    constructor(app: AppStateManager) {
-        this.app = app;
+    private readonly elementManager: ElementContext;
+    constructor(elementManager: ElementContext) {
+        this.elementManager = elementManager;
     }
 
     private lastPosition: Vec2 | null = null;
 
     onDown(position: MousePos): void {
-        this.lastPosition = position.mouseRawPos;
+        this.lastPosition = position.raw;
     }
 
     onMove(position: MousePos): void {
@@ -207,9 +224,9 @@ class Eraser implements Tool {
 
         const shouldBeKept = (e: Element) =>
             e.type !== "stroke" ||
-            !inRect(e.boundingBox, subtract(position.mousePosOnCanvas, e.position));
-        this.app.elementManager.filterUpElements(shouldBeKept);
-        this.lastPosition = position.mousePosOnCanvas;
+            !inRect(e.boundingBox, subtract(position.onCanvas, e.position));
+        this.elementManager.filterUpElements(shouldBeKept);
+        this.lastPosition = position.onCanvas;
     }
 
     onUp(position: MousePos): void {
