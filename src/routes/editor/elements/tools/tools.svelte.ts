@@ -7,16 +7,16 @@ import type { Camera } from "./camera.svelte";
 export class ToolManager {
     private readonly camera: Camera;
     private readonly inputHandler: InputHandler;
-    private readonly elementManager: ElementContext;
+    private readonly elementContext: ElementContext;
     private readonly panningTool: Pan;
     private tool: Tool;
 
-    constructor(camera: Camera, inputHandler: InputHandler, elementManager: ElementContext) {
+    constructor(camera: Camera, inputHandler: InputHandler, elementContext: ElementContext) {
         this.camera = camera;
         this.inputHandler = inputHandler;
-        this.elementManager = elementManager;
+        this.elementContext = elementContext;
         this.panningTool = new Pan(this.camera);
-        this.tool = new Brush(this.elementManager);
+        this.tool = new Brush(this.elementContext);
 
         this.inputHandler.subscribe("pointerdown", this.onMouseDown.bind(this));
         this.inputHandler.subscribe("pointermove", this.onMouseMove.bind(this));
@@ -31,11 +31,11 @@ export class ToolManager {
     private createTool(toolName: string): Tool {
         switch (toolName) {
             case "brush":
-                return new Brush(this.elementManager);
+                return new Brush(this.elementContext);
             case "eraser":
-                return new Eraser(this.elementManager);
+                return new Eraser(this.elementContext);
             default:
-                return new Brush(this.elementManager);
+                return new Brush(this.elementContext);
         }
     }
 
@@ -143,9 +143,9 @@ class Select implements Tool {
 }
 
 class Brush implements Tool {
-    private readonly elementManager: ElementContext;
-    constructor(elementManager: ElementContext) {
-        this.elementManager = elementManager;
+    private readonly elementContext: ElementContext;
+    constructor(elementContext: ElementContext) {
+        this.elementContext = elementContext;
     }
 
     private drawingStroke: { initialPosition: Vec2, points: Vec2[], stroke: Stroke; } | null = null;
@@ -154,7 +154,7 @@ class Brush implements Tool {
         this.drawingStroke = {
             initialPosition: position.onCanvas,
             points: [{ x: 0, y: 0 }],
-            stroke: this.elementManager.addElement({
+            stroke: this.elementContext.addElement({
                 type: "stroke",
                 id: "a",
                 position: position.onCanvas,
@@ -208,9 +208,9 @@ class Pan implements Tool {
 }
 
 class Eraser implements Tool {
-    private readonly elementManager: ElementContext;
-    constructor(elementManager: ElementContext) {
-        this.elementManager = elementManager;
+    private readonly elementContext: ElementContext;
+    constructor(elementContext: ElementContext) {
+        this.elementContext = elementContext;
     }
 
     private lastPosition: Vec2 | null = null;
@@ -225,7 +225,7 @@ class Eraser implements Tool {
         const shouldBeKept = (e: Element) =>
             e.type !== "stroke" ||
             !inRect(e.boundingBox, subtract(position.onCanvas, e.position));
-        this.elementManager.filterUpElements(shouldBeKept);
+        this.elementContext.filterUpElements(shouldBeKept);
         this.lastPosition = position.onCanvas;
     }
 
