@@ -1,18 +1,14 @@
 <script lang="ts">
+    import type { AppState } from "../logic/data.svelte";
     import { renderElement } from "./elements/Snippets.svelte";
-    import type { AppStateManager } from "./elements/tools/datastorage.svelte";
-            
-    const { app }: { app: AppStateManager } = $props();
 
+    const { app }: { app: AppState } = $props();
 </script>
 
 <div class="tl-html-layer" style:transform={app.camera.tranformationStyle}>
-    {#each app.elementManager.elements as element, index (element)}
+    {#each app.elements as element (element.id)}
         {@render renderElement(element)}
     {/each}
-    <!-- {#if comp}
-        {@render renderElement(comp)}
-    {/if} -->
 </div>
 
 <style>

@@ -1,9 +1,9 @@
 <script lang="ts">
+    import { AppState } from "../logic/data.svelte";
     import Toolbar from "../overlay/Toolbar.svelte";
     import Canvas from "./Canvas.svelte";
-    import { AppStateManager } from "./elements/tools/datastorage.svelte";
 
-    const app = new AppStateManager();
+    const app = $state(new AppState());
     console.log("app created");
     console.log(app);
 </script>
@@ -11,11 +11,11 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="bg"
-    onpointerdown={(e) => app.inputHandler.onPointerDown(e)}
-    onpointermove={(e) => app.inputHandler.onPointerMove(e)}
-    onpointerup={(e) => app.inputHandler.onPointerUp(e)}
-    onwheel={(e) => app.inputHandler.onWheel(e)}
-    oncontextmenu={(e) => app.inputHandler.onContextMenu(e)}
+    onpointerdown={(e) => app.onPointerDown(e)}
+    onpointermove={(e) => app.onPointerMove(e)}
+    onpointerup={(e) => app.onPointerUp(e)}
+    onwheel={(e) => app.onWheel(e)}
+    oncontextmenu={(e) => app.onContextMenu(e)}
 >
     <Canvas {app} />
     <Toolbar {app} />

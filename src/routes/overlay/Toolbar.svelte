@@ -1,29 +1,15 @@
 <script lang="ts">
-    import type { AppStateManager } from "../editor/elements/tools/datastorage.svelte";
-    const { app }: { app: AppStateManager } = $props();
-
-
-    function switchToolCallback(tool: string) {
-        return () => app.toolManager.switchTool(tool);
-    }
+    import type { AppState } from "../logic/data.svelte";
+    const { app }: { app: AppState } = $props();
 </script>
 
-
 <div>
-    <button onclick={switchToolCallback("brush")} >
-        Draw
-    </button>
-    <button onclick={switchToolCallback("eraser")} >
-        Eraser
-    </button>
-    <button>
-        Text
-    </button>
-    <button>
-        Image
-    </button>
+    <button onclick={() => app.switchTool("brush")}> Draw </button>
+    <button onclick={() => app.switchTool("eraser")}> Eraser </button>
+    <button onclick={() => app.switchTool("pan")}> Pan </button>
+    <button> Text </button>
+    <button> Image </button>
 </div>
-
 
 <style>
     div {

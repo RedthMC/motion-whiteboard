@@ -2,9 +2,7 @@
     import Toolbar from "./Toolbar.svelte";
 </script>
 
-<div class="overlay">
-    <Toolbar />
-</div>
+<div class="overlay"></div>
 
 <style>
     .overlay {

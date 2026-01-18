@@ -1,58 +1,58 @@
 # Motion Whiteboard
 A whiteboard app that lets users draw, animate with keyframes, and export to video. Works on PC and tablets.
 
-# Hierarchy
-
+## Todoist
 https://app.todoist.com/app/project/motion-whiteboard-6fXXg66X9QFrhm4J
 
+## Architecture
+
+```mermaid
+%%{init: { 'flowchart': { 'curve': 'linear' } } }%%
+graph TD
+    subgraph Routes
+        Page[+page.svelte] --> Editor[Editor.svelte]
+        Editor --> Canvas[Canvas.svelte]
+        Editor --> Toolbar[Toolbar.svelte]
+        Canvas --> Snippets[Snippets.svelte]
+    end
+
+    subgraph Logic
+        AppState[data.svelte.ts]
+        Camera[camera.svelte.ts]
+        Tools[tool.svelte.ts]
+        Elements[elements.ts]
+        Vector[vector.ts]
+    end
+
+    Editor -- creates --> AppState
+    Canvas -- reads --> AppState
+    Toolbar -- modifies --> AppState
+    
+    AppState --> Camera
+    AppState --> Tools
+    AppState --> Elements
+    Camera --> Vector
 ```
-+page
-└─ Editor
-   ├─ Canvas
-   │  └─ Snippets # stroke()
-   └─ Toolbars
-```
 
-Re=tooling
-| Tool   | Up       | Press  | Down       | Release |
-| ------ | -----    | ---    | ---------- | ------- |
-| Select | Sel/Type | Select | Move/Frame | Framed  |
-| Pen    |          | Draw   | Draw       | Drawn   |
-| Eraser |          | Erase  | Erase      | Erased  |
-
-| Tool Button | action |
-| ----------- | -----  | 
-| Textv2      | Open input like in canvas u click on the button and the text pop out in the midlle 
-| Image       | Open folder like textv2
-
-
-
-TOoling
-| Icon | Tool   | Left  | Mid | Right |
-| ---- | ------ | ----- | --- | ----- |
-| ✏️  | Brush  | Draw  | Pan | Erase |
-| 🗑️  | Eraser | Erase | Pan | Area  |
-| T    | Text   | Type  | Pan | ...   |
-
-
+## File Structure
 
 ```
 src/
-├─ components/
-│  ├─ Canvas.svelte   → handles drawing + erasing
-│  ├─ Timeline.svelte → keyframe editor
-│  └─ Toolbar.svelte  → drawing tools (pen, eraser, text)
-├─ lib/
-│  ├─ store.ts        → Svelte stores for project + elements
-│  └─ utils.ts        → geometry helpers (distance, intersection)
-```
-
-
-```
-On Click -> Editor.ts # onPointerDown
-On Drag -> Editor.ts # onPointerMove
-on Release -> Editor.ts # onPointerUp
-
+├─ routes/
+│  ├─ editor/
+│  │  ├─ elements/
+│  │  │  └─ Snippets.svelte  → Element renderers
+│  │  ├─ Canvas.svelte       → Main drawing area
+│  │  └─ Editor.svelte       → Main editor container
+│  ├─ logic/
+│  │  ├─ camera.svelte.ts    → Zoom & Pan logic
+│  │  ├─ data.svelte.ts      → AppState & Entry point
+│  │  ├─ elements.ts         → Element types (Point, Stroke)
+│  │  ├─ tool.svelte.ts      → Tool logic (Brush, Eraser, Pan)
+│  │  └─ vector.ts           → Math helpers
+│  ├─ overlay/
+│  │  └─ Toolbar.svelte      → Tool switching
+│  └─ +page.svelte           → App Root
 ```
 
 ## TODO:
