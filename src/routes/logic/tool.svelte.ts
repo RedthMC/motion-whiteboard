@@ -1,19 +1,92 @@
+import type { StyleManager } from "./app.svelte";
 import type { Camera } from "./camera.svelte";
-import type { ElementManager, MouseCoords, StyleManager } from "./data.svelte";
-import { Stroke, type Element } from "./elements";
-import { Vec2, Rect } from "./vector";
+import type { CursorName } from "./cursors.svelte";
+import { Stroke, type Element, type ElementManager } from "./elements.svelte";
+import { Vec2, Rect } from "./math/vector";
+
+export type MouseCoords = {
+    canvas: Vec2;
+    screen: Vec2;
+};
+
+export class Toolbox {
+    private readonly camera: Camera;
+    private readonly tools;
+
+    constructor(
+        elements: ElementManager,
+        camera: Camera,
+        styleManager: StyleManager
+    ) {
+        this.camera = camera;
+        const pan = new Pan(camera);
+        const brush = new Brush(elements, styleManager);
+        const eraser = new Eraser(elements);
+        this.tools = {
+            hand: [pan, pan, pan],
+            draw: [brush, pan, eraser],
+            eraser: [eraser, pan],
+        };
+    }
+
+    private getMouseCoords(event: MouseEvent): MouseCoords {
+        const screenCoords = { x: event.clientX, y: event.clientY };
+        const canvasCoords = this.camera.toCanvasCoords(screenCoords);
+        return { canvas: canvasCoords, screen: screenCoords };
+    }
+
+    selectedTool: keyof typeof this.tools = $state("draw");
+    activeTool: Tool | undefined = $state();
+
+    get cursorName() { return this.activeTool?.cursor ?? this.tools[this.selectedTool][0].cursor; }
+
+    switchTool(toolName: keyof typeof this.tools) {
+        this.selectedTool = toolName;
+    }
+
+    onPointerDown(event: PointerEvent) {
+        this.activeTool = this.tools[this.selectedTool].at(event.button);
+        if (!this.activeTool) return;
+        this.activeTool.onDown(this.getMouseCoords(event));
+    }
+
+    onPointerMove(event: PointerEvent) {
+        if (!this.activeTool) return;
+        this.activeTool.onMove(this.getMouseCoords(event));
+    }
+
+    onPointerUp(event: PointerEvent) {
+        if (!this.activeTool) return;
+        this.activeTool.onUp(this.getMouseCoords(event));
+        this.activeTool = undefined;
+    }
+
+    onWheel(event: WheelEvent) {
+        event.preventDefault(); // prevent browser ctrl+scroll
+        const scale = event.deltaY < 0 ? 1.25 : 0.8;
+        this.camera.zoomAt(this.getMouseCoords(event).screen, scale);
+    }
+
+    onContextMenu(event: MouseEvent) {
+        event.preventDefault();
+    }
+
+}
 
 export interface Tool {
+    readonly cursor: CursorName;
     onDown(coords: MouseCoords): void;
     onMove(coords: MouseCoords): void;
     onUp(coords: MouseCoords): void;
 }
 
-// finished code
 export class Pan implements Tool {
     private readonly camera: Camera;
     constructor(camera: Camera) { this.camera = camera; }
-    private prevCoordsScreen: Vec2 | null = null;
+
+    private prevCoordsScreen: Vec2 | undefined = $state();
+
+    readonly cursor = $derived(this.prevCoordsScreen ? "grabbing" : "grab");
 
     onDown(coords: MouseCoords): void {
         this.prevCoordsScreen = coords.screen;
@@ -27,18 +100,20 @@ export class Pan implements Tool {
     }
 
     onUp(coords: MouseCoords): void {
-        this.prevCoordsScreen = null;
+        this.prevCoordsScreen = undefined;
     }
 }
 
 export class Brush implements Tool {
-    private readonly elementManager: ElementManager;
+    private readonly elements: ElementManager;
     private readonly styleManager: StyleManager;
 
-    constructor(elementManager: ElementManager, styleManager: StyleManager) {
-        this.elementManager = elementManager;
+    constructor(elements: ElementManager, styleManager: StyleManager) {
+        this.elements = elements;
         this.styleManager = styleManager;
     }
+
+    readonly cursor = "pencil";
 
     private drawingStroke: { initialCoords: Vec2, points: Vec2[], stroke: Stroke; } | null = $state(null);
 
@@ -46,7 +121,7 @@ export class Brush implements Tool {
         this.drawingStroke = {
             initialCoords: coords.canvas,
             points: [{ x: 0, y: 0 }],
-            stroke: this.elementManager.addElement({
+            stroke: this.elements.addElement({
                 type: "stroke",
                 id: crypto.randomUUID(),
                 position: coords.canvas,
@@ -73,8 +148,10 @@ export class Brush implements Tool {
 }
 
 export class Eraser implements Tool {
-    private readonly elementManager: ElementManager;
-    constructor(elementManager: ElementManager) { this.elementManager = elementManager; }
+    private readonly elements: ElementManager;
+    constructor(elements: ElementManager) { this.elements = elements; }
+
+    readonly cursor = "eraser";
 
     private prevCoords: Vec2 | null = null;
 
@@ -88,7 +165,7 @@ export class Eraser implements Tool {
         const shouldBeKept = (e: Element) =>
             e.type !== "stroke" ||
             !Rect.inRect(e.boundingBox, Vec2.subtract(coords.canvas, e.position));
-        this.elementManager.filterUpElements(shouldBeKept);
+        this.elements.filterUpElements(shouldBeKept);
         this.prevCoords = coords.canvas;
     }
 

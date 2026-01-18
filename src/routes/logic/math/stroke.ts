@@ -1,30 +1,7 @@
-import { getStrokePoints, type StrokePoint } from "perfect-freehand";
-import { Rect, type Vec2 } from "./vector";
-
-export type Element = Stroke | Text;
-
-export type Stroke = {
-    id: string,
-    type: "stroke",
-    position: Vec2,
-    path: string,
-    boundingBox: Rect,
-    color: string,
-    size: number,
-};
-
-export type Text = {
-    id: string,
-    type: "text",
-    text: "",
-};
-
-
-export const Stroke = {
-    toSvgPath: (points: Vec2[]): string => getSvgPathFromStrokePoints(getStrokePoints(points)),
-};
+import { getStrokePoints } from "perfect-freehand";
 
 type Point = number[];
+
 function precise(A: Point) {
     return `${toDomPrecision(A[0])},${toDomPrecision(A[1])} `;
 }
@@ -37,7 +14,8 @@ function average(A: Point, B: Point) {
     return `${toDomPrecision((A[0] + B[0]) / 2)},${toDomPrecision((A[1] + B[1]) / 2)} `;
 }
 
-function getSvgPathFromStrokePoints(points: StrokePoint[], closed = false): string {
+export function getSvgPathFromStrokePoints(vec2s: { x: number, y: number; }[], closed = false): string {
+    const points = getStrokePoints(vec2s);
     const len = points.length;
 
     if (len < 2) return '';
@@ -74,4 +52,3 @@ function getSvgPathFromStrokePoints(points: StrokePoint[], closed = false): stri
         )}${points.length > 3 ? 'T' : ''}${result}L${precise(points[len - 1].point)}`;
     }
 }
-

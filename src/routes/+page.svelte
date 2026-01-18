@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>Home</title>
+	<title>Motion Whiteboard</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
@@ -18,9 +18,5 @@
 		justify-content: center;
 		align-items: center;
 		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
 	}
 </style>

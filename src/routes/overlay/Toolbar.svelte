@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { AppState } from "../logic/data.svelte";
+    import type { AppState } from "../logic/app.svelte";
     import {
         Pencil,
         Eraser,
@@ -20,24 +20,24 @@
         </button>
 
         <button
-            class:active={app.currentTool === "brush"}
-            onclick={() => app.switchTool("brush")}
+            class:active={app.toolbox.selectedTool === "draw"}
+            onclick={() => app.toolbox.switchTool("draw")}
             aria-label="Draw"
         >
             <Pencil size={20} />
         </button>
 
         <button
-            class:active={app.currentTool === "pan"}
-            onclick={() => app.switchTool("pan")}
-            aria-label="Pan"
+            class:active={app.toolbox.selectedTool === "hand"}
+            onclick={() => app.toolbox.switchTool("hand")}
+            aria-label="Hand"
         >
             <Hand size={20} />
         </button>
 
         <button
-            class:active={app.currentTool === "eraser"}
-            onclick={() => app.switchTool("eraser")}
+            class:active={app.toolbox.selectedTool === "eraser"}
+            onclick={() => app.toolbox.switchTool("eraser")}
             aria-label="Eraser"
         >
             <Eraser size={20} />

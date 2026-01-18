@@ -21,18 +21,23 @@ graph TD
 
     Editor -- creates --> AppState
     Canvas -- reads --> AppState
-    Toolbar -- modifies --> AppState
-    StylePanel -- modifies --> AppState
+    Overlay -- reads/modifies --> AppState
     
     subgraph Logic
-      AppState(data.svelte.ts)
+      AppState(app.svelte.ts)
       AppState --> Camera(camera.svelte.ts)
-      AppState --> Tools(tool.svelte.ts)
-      AppState --> Elements(elements.ts)
-      AppState --> StyleManager(StyleManager)
-      AppState --> Cursor(cursors.svelte.ts)
+      AppState --> ElementManager(elements.svelte.ts)
+      AppState --> StyleManager(app.svelte.ts)
       
-      Tools --> StyleManager
+      AppState -- injects --> Toolbox(tool.svelte.ts)
+      Toolbox --> Camera
+      Toolbox --> ElementManager
+      Toolbox --> StyleManager
+
+      AppState -- injects --> Cursor(cursors.svelte.ts)
+      Cursor --> Toolbox
+      
+      Toolbox -- manages --> Tools(Pan, Brush, Eraser)
     end
 ```
 
@@ -43,18 +48,24 @@ src/
 ├─ routes/
 │  ├─ editor/
 │  │  ├─ elements/
-│  │  │  └─ Snippets.svelte  → Element renderers
-│  │  ├─ Canvas.svelte       → Main drawing area
-│  │  └─ Editor.svelte       → Main editor container
+│  │  │  └─ Snippets.svelte    → Element renderers
+│  │  ├─ Canvas.svelte         → Main drawing area
+│  │  └─ Editor.svelte         → Main editor container
 │  ├─ logic/
-│  │  ├─ camera.svelte.ts    → Zoom & Pan logic
-│  │  ├─ data.svelte.ts      → AppState & Entry point
-│  │  ├─ elements.ts         → Element types (Point, Stroke)
-│  │  ├─ tool.svelte.ts      → Tool logic (Brush, Eraser, Pan)
-│  │  └─ vector.ts           → Math helpers
+│  │  ├─ math/
+│  │  │  ├─ stroke.ts          → SVG path generation
+│  │  │  └─ vector.ts          → Vector math helpers
+│  │  ├─ app.svelte.ts         → AppState & StyleManager
+│  │  ├─ camera.svelte.ts      → Zoom & Pan logic
+│  │  ├─ cursors.svelte.ts     → Cursor logic & SVG generation
+│  │  ├─ elements.svelte.ts    → ElementManager & Types
+│  │  └─ tool.svelte.ts        → Toolbox & Tool logic
 │  ├─ overlay/
-│  │  └─ Toolbar.svelte      → Tool switching
-│  └─ +page.svelte           → App Root
+│  │  ├─ Overlay.svelte        → Overlay container (interaction layer)
+│  │  ├─ StylePanel.svelte     → Color & Size picker
+│  │  ├─ theme.css             → Shared CSS variables
+│  │  └─ Toolbar.svelte        → Tool switching
+│  └─ +page.svelte             → App Root
 ```
 
 

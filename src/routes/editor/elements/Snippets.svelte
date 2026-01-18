@@ -1,5 +1,5 @@
 <script module lang="ts">
-    import type * as types from "../../logic/elements";
+    import type * as types from "../../logic/elements.svelte";
 
     type SnippetMapType = {
         [E in types.Element as E["type"]]: (

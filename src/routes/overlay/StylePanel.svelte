@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { AppState } from "../logic/data.svelte";
+    import type { AppState } from "../logic/app.svelte";
 
     const { app }: { app: AppState } = $props();
 </script>
@@ -102,12 +102,14 @@
         accent-color: var(--color-primary);
         background: #d3d3d3; /* Keep minimal gray for track */
         cursor: pointer;
-        --size: 3rem;
         transition: opacity 0.2s;
+        --size: 3rem;
     }
+
     .slider::-webkit-slider-thumb:hover {
         background: var(--color-primary-hover);
     }
+
     .slider::-webkit-slider-thumb {
         appearance: none;
         background: var(--color-primary);

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { AppState } from "../logic/data.svelte";
+    import type { AppState } from "../logic/app.svelte";
     import { renderElement } from "./elements/Snippets.svelte";
 
     const { app }: { app: AppState } = $props();

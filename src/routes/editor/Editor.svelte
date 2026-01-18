@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AppState } from "../logic/data.svelte";
+    import { AppState } from "../logic/app.svelte";
     import Overlay from "../overlay/Overlay.svelte";
     import Canvas from "./Canvas.svelte";
 
@@ -13,11 +13,11 @@
     <div
         class="interactions"
         style:cursor={app.cursor.style}
-        onpointerdown={(e) => app.onPointerDown(e)}
-        onpointermove={(e) => app.onPointerMove(e)}
-        onpointerup={(e) => app.onPointerUp(e)}
-        onwheel={(e) => app.onWheel(e)}
-        oncontextmenu={(e) => app.onContextMenu(e)}
+        onpointerdown={(e) => app.toolbox.onPointerDown(e)}
+        onpointermove={(e) => app.toolbox.onPointerMove(e)}
+        onpointerup={(e) => app.toolbox.onPointerUp(e)}
+        onwheel={(e) => app.toolbox.onWheel(e)}
+        oncontextmenu={(e) => app.toolbox.onContextMenu(e)}
     >
         <Canvas {app} />
     </div>

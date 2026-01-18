@@ -1,4 +1,5 @@
-import type { Vec2, Vec3 } from "./vector";
+import type { Vec2, Vec3 } from "./math/vector";
+
 
 export class Camera {
     private camera: Vec3 = $state({ x: 0, y: 0, z: 1 });
