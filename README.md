@@ -10,24 +10,30 @@ Using lucide icons
 
 
 ```mermaid
-%%{init: { 'flowchart': { 'curve': 'linear' } } }%%
 graph TD
     subgraph Routes
         Page[+page.svelte] --> Editor[Editor.svelte]
         Editor --> Canvas[Canvas.svelte]
-        Editor --> Toolbar[Toolbar.svelte]
+        Editor --> Overlay[Overlay.svelte]
+        Overlay --> Toolbar[Toolbar.svelte]
+        Overlay --> StylePanel[StylePanel.svelte]
         Canvas --> Snippets[Snippets.svelte]
     end
 
     Editor -- creates --> AppState
     Canvas -- reads --> AppState
     Toolbar -- modifies --> AppState
+    StylePanel -- modifies --> AppState
     
     subgraph Logic
       AppState(data.svelte.ts)
       AppState --> Camera(camera.svelte.ts)
       AppState --> Tools(tool.svelte.ts)
       AppState --> Elements(elements.ts)
+      AppState --> StyleManager(StyleManager)
+      AppState --> Cursor(cursors.svelte.ts)
+      
+      Tools --> StyleManager
     end
 ```
 
