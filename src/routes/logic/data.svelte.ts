@@ -1,4 +1,5 @@
 import { Camera } from "./camera.svelte";
+import { Cursor } from "./cursors.svelte";
 import type { Element } from "./elements";
 import { Pan, type Tool, Brush, Eraser } from "./tool.svelte";
 import { Vec2 } from "./vector";
@@ -9,15 +10,18 @@ const MID_MOUSE_BUTTON = 1;
 export class AppState {
     readonly elements = new ElementManager();
     readonly camera = new Camera();
+    readonly styleManager = new StyleManager();
 
     private readonly tools = {
         pan: new Pan(this.camera),
-        brush: new Brush(this.elements),
+        brush: new Brush(this.elements, this.styleManager),
         eraser: new Eraser(this.elements),
     };
 
     currentTool: keyof typeof this.tools = $state("brush");
-    activeTool: Tool | null = null;
+    activeTool: Tool | null = $state(null);
+
+    readonly cursor = new Cursor(this);
 
     private getMouseCoords(event: MouseEvent): MouseCoords {
         const screenCoords = { x: event.clientX, y: event.clientY };
@@ -85,6 +89,28 @@ export class ElementManager implements Iterable<Element> {
     findElements(predicate: (element: Element) => unknown) {
         return this.elements.filter(predicate);
     }
+}
+
+export class StyleManager {
+    style = $state({
+        color: "#000000",
+        size: 3,
+    });
+
+    readonly colors = [
+        "#000000",
+        "#9ca3af",
+        "#e879f9",
+        "#a855f7",
+        "#3b82f6",
+        "#0ea5e9",
+        "#f59e0b",
+        "#f97316",
+        "#098d44",
+        "#22c55e",
+        "#f08193",
+        "#ef4444",
+    ];
 }
 
 export type MouseCoords = {

@@ -1,5 +1,5 @@
 import type { Camera } from "./camera.svelte";
-import type { ElementManager, MouseCoords } from "./data.svelte";
+import type { ElementManager, MouseCoords, StyleManager } from "./data.svelte";
 import { Stroke, type Element } from "./elements";
 import { Vec2, Rect } from "./vector";
 
@@ -33,7 +33,12 @@ export class Pan implements Tool {
 
 export class Brush implements Tool {
     private readonly elementManager: ElementManager;
-    constructor(elementManager: ElementManager) { this.elementManager = elementManager; }
+    private readonly styleManager: StyleManager;
+
+    constructor(elementManager: ElementManager, styleManager: StyleManager) {
+        this.elementManager = elementManager;
+        this.styleManager = styleManager;
+    }
 
     private drawingStroke: { initialCoords: Vec2, points: Vec2[], stroke: Stroke; } | null = $state(null);
 
@@ -47,6 +52,8 @@ export class Brush implements Tool {
                 position: coords.canvas,
                 path: "M0,0Z",
                 boundingBox: { left: -5, top: -5, right: 5, bottom: 5 }, // TODO: base on stroke width
+                color: this.styleManager.style.color,
+                size: this.styleManager.style.size,
             }),
         };
     }

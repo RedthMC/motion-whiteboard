@@ -9,6 +9,8 @@ export type Stroke = {
     position: Vec2,
     path: string,
     boundingBox: Rect,
+    color: string,
+    size: number,
 };
 
 export type Text = {

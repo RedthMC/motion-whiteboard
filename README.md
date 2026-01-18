@@ -6,6 +6,9 @@ https://app.todoist.com/app/project/motion-whiteboard-6fXXg66X9QFrhm4J
 
 ## Architecture
 
+Using lucide icons
+
+
 ```mermaid
 %%{init: { 'flowchart': { 'curve': 'linear' } } }%%
 graph TD
@@ -16,22 +19,16 @@ graph TD
         Canvas --> Snippets[Snippets.svelte]
     end
 
-    subgraph Logic
-        AppState[data.svelte.ts]
-        Camera[camera.svelte.ts]
-        Tools[tool.svelte.ts]
-        Elements[elements.ts]
-        Vector[vector.ts]
-    end
-
     Editor -- creates --> AppState
     Canvas -- reads --> AppState
     Toolbar -- modifies --> AppState
     
-    AppState --> Camera
-    AppState --> Tools
-    AppState --> Elements
-    Camera --> Vector
+    subgraph Logic
+      AppState(data.svelte.ts)
+      AppState --> Camera(camera.svelte.ts)
+      AppState --> Tools(tool.svelte.ts)
+      AppState --> Elements(elements.ts)
+    end
 ```
 
 ## File Structure

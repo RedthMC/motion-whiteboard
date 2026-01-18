@@ -28,8 +28,8 @@
             d={object.path}
             stroke-linecap="round"
             fill="none"
-            stroke="black"
-            stroke-width="10"
+            stroke={object.color}
+            stroke-width={2 ** object.size}
         />
         <!-- <rect
             width={object.boundingBox.end.x - object.boundingBox.start.x}
