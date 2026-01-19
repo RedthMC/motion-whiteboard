@@ -1,37 +1,23 @@
 import { type CanvasTool, type MouseCoords } from "./tools.svelte";
 import { Vec2 } from "../math/vector";
-import { ScribbleBuilder } from "../math/stroke";
-import type { ElementProvider } from "../interface/interface";
+import type { ManagerProvider } from "../interface/interface";
 
 export class Eraser implements CanvasTool {
-    private readonly elements: ElementProvider;
-    constructor(elements: ElementProvider) { this.elements = elements; }
-
     readonly cursor = "eraser";
 
-    private prevCoords: Vec2 | null = null;
-    private scribbleBuilder = new ScribbleBuilder();
-    trailPath = $state(this.scribbleBuilder.buildPath(25));
+    private readonly app: ManagerProvider;
+    constructor(app: ManagerProvider) { this.app = app; }
 
-    private timer: NodeJS.Timeout | null = null;
-    startTimer() {
-        if (this.timer) return;
-        this.timer = setInterval(() => {
-            this.trailPath = this.scribbleBuilder.buildPath(25);
-        }, 16);
-    }
+    private prevCoords: Vec2 | null = null;
 
     onDown(coords: MouseCoords): void {
         this.prevCoords = coords.canvas;
-        this.scribbleBuilder.addPoint(coords.canvas);
-        this.startTimer();
+        this.app.trail.addPoint(coords.canvas);
     }
 
     onMove(coords: MouseCoords): void {
-        if (!this.prevCoords) return;
-
-        this.scribbleBuilder.addPoint(coords.canvas);
-        this.elements.filterUpElements(el => !el.hitTest(coords.canvas));
+        this.app.trail.addPoint(coords.canvas);
+        this.app.elements.filterUpElements(el => !el.hitTest(coords.canvas));
         this.prevCoords = coords.canvas;
     }
 

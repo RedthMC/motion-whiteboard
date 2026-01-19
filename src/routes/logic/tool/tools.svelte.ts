@@ -1,3 +1,4 @@
+import type { Component } from "svelte";
 import { type CursorName } from "../manager/cursors.svelte";
 import { Vec2 } from "../math/vector";
 
@@ -8,6 +9,7 @@ export type MouseCoords = {
 
 export interface CanvasTool {
     readonly cursor: CursorName;
+    readonly layer?: Component<any>;
     onDown(coords: MouseCoords): void;
     onMove(coords: MouseCoords): void;
     onUp(coords: MouseCoords): void;

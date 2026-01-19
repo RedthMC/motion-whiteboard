@@ -1,7 +1,6 @@
 <script lang="ts">
-    import type { AppState } from "../logic/app.svelte";
-
-    const { app }: { app: AppState } = $props();
+    import { getAppState } from "../logic/context";
+    const app = getAppState();
 </script>
 
 <div class="style-panel">

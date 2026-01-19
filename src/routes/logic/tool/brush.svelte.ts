@@ -1,18 +1,12 @@
 import { type CanvasTool, type MouseCoords } from "./tools.svelte";
-import type { StyleManager } from "../manager/style_manager.svelte";
 import { getSvgPathFromVec2Points } from "../math/stroke";
 import { Vec2, Rect } from "../math/vector";
-import type { ElementProvider } from "../interface/interface";
+import type { ManagerProvider } from "../interface/interface";
 import { StrokeElement } from "../element/stroke/stroke_element.svelte";
 
 export class Brush implements CanvasTool {
-    private readonly elements: ElementProvider;
-    private readonly styleManager: StyleManager;
-
-    constructor(elements: ElementProvider, styleManager: StyleManager) {
-        this.elements = elements;
-        this.styleManager = styleManager;
-    }
+    private readonly app: ManagerProvider;
+    constructor(app: ManagerProvider) { this.app = app; }
 
     readonly cursor = "pencil";
 
@@ -22,12 +16,12 @@ export class Brush implements CanvasTool {
         this.drawingStroke = {
             initialCoords: coords.canvas,
             points: [{ x: 0, y: 0 }],
-            stroke: this.elements.addElement(new StrokeElement(
+            stroke: this.app.elements.addElement(new StrokeElement(
                 coords.canvas,
                 [{ x: 0, y: 0 }],
                 "M0,0Z",
-                this.styleManager.color,
-                this.styleManager.size,
+                this.app.styleManager.color,
+                this.app.styleManager.size,
                 { left: -5, top: -5, right: 5, bottom: 5 }, // TODO: base on stroke width
             )),
         };

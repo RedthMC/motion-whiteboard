@@ -1,5 +1,9 @@
 import type { Component } from "svelte";
 import type { Rect, Vec2 } from "../math/vector";
+import type { StyleManager } from "../manager/style_manager.svelte";
+import type { SelectionManager } from "../manager/selection.svelte";
+import type { Camera } from "../manager/camera.svelte";
+import type { TrailManager } from "../manager/trail_manager.svelte";
 
 export interface ElementProvider extends Iterable<Element> {
     // return the svelte-proxied element (will forward changes)
@@ -9,6 +13,14 @@ export interface ElementProvider extends Iterable<Element> {
     findElements(predicate: (element: Element) => unknown): Element[];
     findElementAt(pos: Vec2): Element | undefined;
     getElementsByRect(frame: Rect): Element[];
+}
+
+export interface ManagerProvider {
+    readonly elements: ElementProvider;
+    readonly camera: Camera;
+    readonly styleManager: StyleManager;
+    readonly selection: SelectionManager;
+    readonly trail: TrailManager;
 }
 
 export interface Element {

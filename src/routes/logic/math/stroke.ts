@@ -8,14 +8,20 @@ type TimedPoint = Vec2 & { time: number; };
 
 export class ScribbleBuilder {
     private points: TimedPoint[] = [];
-    private lastingDuration: number = 100;
+    private lastingDuration: number;
+
+    constructor(lastingDuration: number = 1000) {
+        this.lastingDuration = lastingDuration;
+    }
 
     addPoint(point: Vec2) {
         this.points.push({ ...point, time: Date.now() });
     }
 
-    buildPath(thickness: number): string {
+    // null if no points
+    buildPath(thickness: number): string | null {
         this.points = this.points.filter(p => Date.now() - p.time < this.lastingDuration);
+        if (this.points.length === 0) return null;
         const withPressure = this.points.map(p => [p.x, p.y]);
         const strokePoints = getStrokePoints(withPressure);
         const stroke = freehand.getStrokeOutlinePoints(strokePoints, { start: { taper: true }, size: thickness });

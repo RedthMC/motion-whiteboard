@@ -1,10 +1,10 @@
 import { type CanvasTool, type MouseCoords } from "./tools.svelte";
 import { Vec2 } from "../math/vector";
-import { Camera } from "../manager/camera.svelte";
+import type { ManagerProvider } from "../interface/interface";
 
 export class Pan implements CanvasTool {
-    private readonly camera: Camera;
-    constructor(camera: Camera) { this.camera = camera; }
+    private readonly app: ManagerProvider;
+    constructor(app: ManagerProvider) { this.app = app; }
 
     private prevCoordsScreen: Vec2 | undefined = $state();
 
@@ -17,7 +17,7 @@ export class Pan implements CanvasTool {
     onMove(coords: MouseCoords): void {
         if (!this.prevCoordsScreen) return;
         const displacement = Vec2.subtract(this.prevCoordsScreen, coords.screen);
-        this.camera.moveBy(displacement);
+        this.app.camera.moveBy(displacement);
         this.prevCoordsScreen = coords.screen;
     }
 

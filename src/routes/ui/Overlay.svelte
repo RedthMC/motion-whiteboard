@@ -2,17 +2,16 @@
     import Toolbar from "./Toolbar.svelte";
     import StylePanel from "./StylePanel.svelte";
     import "../../app.css";
-    import type { AppState } from "../logic/app.svelte";
-
-    const { app }: { app: AppState } = $props();
+    import { getAppState } from "../logic/context";
+    const app = getAppState();
 </script>
 
 <div
     class="overlay-layer"
     class:tool-active={app.toolbox.activeTool !== undefined}
 >
-    <div class="child"><StylePanel {app} /></div>
-    <div class="child"><Toolbar {app} /></div>
+    <div class="child"><StylePanel /></div>
+    <div class="child"><Toolbar /></div>
 </div>
 
 <style>

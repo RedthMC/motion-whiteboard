@@ -3,9 +3,9 @@
     import Overlay from "../ui/Overlay.svelte";
     import Canvas from "./Canvas.svelte";
 
+    import { setAppState } from "../logic/context";
     const app = $state(new AppState());
-    console.log("app created");
-    console.log(app);
+    setAppState(app);
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -19,8 +19,8 @@
         onwheel={(e) => app.toolbox.onWheel(e)}
         oncontextmenu={(e) => app.toolbox.onContextMenu(e)}
     ></div>
-    <Canvas {app} />
-    <Overlay {app} />
+    <Canvas />
+    <Overlay />
 </div>
 
 <style>

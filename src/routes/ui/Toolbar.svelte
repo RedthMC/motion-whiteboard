@@ -1,5 +1,6 @@
 <script lang="ts">
-    import type { AppState } from "../logic/app.svelte";
+    import { getAppState } from "../logic/context";
+    const app = getAppState();
 
     import {
         Pencil,
@@ -11,38 +12,37 @@
         MousePointer2,
     } from "lucide-svelte";
     import "../../app.css";
-    const { app }: { app: AppState } = $props();
 </script>
 
 <div class="toolbar-container">
     <div class="toolbar">
         <button
-            class:active={app.toolbox.selectedTool === "select"}
-            onclick={() => app.toolbox.switchTool("select")}
+            class:active={app.toolbox.currentMode.type === "select"}
+            onclick={() => app.toolbox.switchMode(app.modes.select)}
             aria-label="Select"
         >
             <MousePointer2 size={20} />
         </button>
 
         <button
-            class:active={app.toolbox.selectedTool === "draw"}
-            onclick={() => app.toolbox.switchTool("draw")}
+            class:active={app.toolbox.currentMode.type === "draw"}
+            onclick={() => app.toolbox.switchMode(app.modes.draw)}
             aria-label="Draw"
         >
             <Pencil size={20} />
         </button>
 
         <button
-            class:active={app.toolbox.selectedTool === "hand"}
-            onclick={() => app.toolbox.switchTool("hand")}
+            class:active={app.toolbox.currentMode.type === "hand"}
+            onclick={() => app.toolbox.switchMode(app.modes.hand)}
             aria-label="Hand"
         >
             <Hand size={20} />
         </button>
 
         <button
-            class:active={app.toolbox.selectedTool === "eraser"}
-            onclick={() => app.toolbox.switchTool("eraser")}
+            class:active={app.toolbox.currentMode.type === "eraser"}
+            onclick={() => app.toolbox.switchMode(app.modes.eraser)}
             aria-label="Eraser"
         >
             <Eraser size={20} />

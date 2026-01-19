@@ -1,19 +1,18 @@
 import type { Camera } from "./camera.svelte";
 import { Cursor } from "./cursors.svelte";
 import type { CanvasTool, MouseCoords } from "../tool/tools.svelte";
+import type { CanvasMode } from "../mode/modes.svelte";
 
-export class Toolbox<Key extends string> {
+export class Toolbox {
     private readonly camera: Camera;
-    private readonly toolGroups: { [K in Key]: CanvasTool[] };
 
-    constructor(
-        toolGroups: { [K in Key]: CanvasTool[] },
-        defaultTool: Key,
-        camera: Camera
-    ) {
+    // High level state
+    currentMode: CanvasMode = $state() as CanvasMode;
+    activeTool: CanvasTool | undefined = $state();
+
+    constructor(defaultMode: CanvasMode, camera: Camera) {
         this.camera = camera;
-        this.toolGroups = toolGroups;
-        this.selectedTool = defaultTool;
+        this.currentMode = defaultMode;
     }
 
     private getMouseCoords(event: MouseEvent): MouseCoords {
@@ -22,19 +21,20 @@ export class Toolbox<Key extends string> {
         return { canvas: canvasCoords, screen: screenCoords };
     }
 
-    selectedTool: Key = $state() as Key;
-    activeTool: CanvasTool | undefined = $state();
-    cursor: string = $derived.by(() => {
-        const cursorName = this.activeTool?.cursor ?? this.toolGroups[this.selectedTool]?.[0]?.cursor ?? "default";
-        return Cursor.getStyle(cursorName);
-    });
+    // The tool that is "default" for the current mode (left-click tool)
+    primaryTool: CanvasTool = $derived.by(() => this.currentMode.toolGroups[0]);
 
-    switchTool(toolName: Key) {
-        this.selectedTool = toolName;
+    // The tool currently "in charge" of the cursor/layer visuals
+    currentVisualTool: CanvasTool = $derived(this.activeTool ?? this.primaryTool);
+
+    cursor: string = $derived(Cursor.getStyle(this.currentVisualTool.cursor));
+
+    switchMode(mode: CanvasMode) {
+        this.currentMode = mode;
     }
 
     onPointerDown(event: PointerEvent) {
-        this.activeTool = this.toolGroups[this.selectedTool].at(event.button);
+        this.activeTool = this.currentMode.toolGroups.at(event.button);
         if (!this.activeTool) return;
         this.activeTool.onDown(this.getMouseCoords(event));
     }
