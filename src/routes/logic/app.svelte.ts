@@ -5,7 +5,7 @@ import type { ManagerProvider } from "./interface/interface";
 import { ElementManager } from "./element/elements.svelte";
 import { TextElement } from "./element/text/text_element.svelte";
 import { SelectionManager } from "./manager/selection.svelte";
-import { SelectMode, DrawMode, EraserMode, HandMode } from "./mode/modes.svelte";
+import { Modes } from "./mode/modes.svelte";
 import { TrailManager } from "./manager/trail_manager.svelte";
 
 export class AppState implements ManagerProvider {
@@ -15,14 +15,9 @@ export class AppState implements ManagerProvider {
     readonly selection = new SelectionManager();
     readonly trail = new TrailManager(25);
 
-    readonly modes = {
-        select: new SelectMode(this),
-        draw: new DrawMode(this),
-        eraser: new EraserMode(this),
-        hand: new HandMode(this),
-    };
+    readonly modes = Modes;
 
-    readonly toolbox = new Toolbox(this.modes.select, this.camera);
+    readonly toolbox = new Toolbox(this, this.modes.draw);
 
     createText() {
         this.elements.addElement(new TextElement(

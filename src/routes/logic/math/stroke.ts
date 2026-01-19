@@ -10,7 +10,7 @@ export class ScribbleBuilder {
     private points: TimedPoint[] = [];
     private lastingDuration: number;
 
-    constructor(lastingDuration: number = 1000) {
+    constructor(lastingDuration: number = 100) {
         this.lastingDuration = lastingDuration;
     }
 

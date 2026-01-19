@@ -1,5 +1,7 @@
-export type Vec2 = { x: number; y: number; };
+export type Vec2 = { readonly x: number; readonly y: number; };
 export const Vec2 = {
+    new: (x: number, y: number) => ({ x, y }),
+    zero: () => ({ x: 0, y: 0 }),
     add: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x + b.x, y: a.y + b.y }),
     subtract: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x - b.x, y: a.y - b.y }),
     multiply: (a: Vec2, n: number): Vec2 => ({ x: a.x * n, y: a.y * n }),
@@ -15,8 +17,9 @@ export const Vec2 = {
     lerp: (a: Vec2, b: Vec2, t: number): Vec2 => Vec2.add(Vec2.multiply(a, 1 - t), Vec2.multiply(b, t)),
 };
 
-export type Vec3 = { x: number; y: number; z: number; };
+export type Vec3 = { readonly x: number; readonly y: number; readonly z: number; };
 export const Vec3 = {
+    zero: { x: 0, y: 0, z: 0 },
     add: (a: Vec3, b: Vec3): Vec3 => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }),
     subtract: (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }),
     multiply: (a: Vec3, n: number): Vec3 => ({ x: a.x * n, y: a.y * n, z: a.z * n }),
@@ -34,6 +37,7 @@ export const Vec3 = {
 
 export type Rect = { left: number, top: number, right: number, bottom: number; };
 export const Rect = {
+    new: (left: number, top: number, right: number, bottom: number) => ({ left, top, right, bottom }),
     add: (rect: Rect, point: Vec2): Rect => ({
         left: rect.left + point.x,
         top: rect.top + point.y,

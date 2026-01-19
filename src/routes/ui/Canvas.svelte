@@ -1,6 +1,7 @@
 <script lang="ts">
     import { getAppState } from "../logic/context";
     import TextEditing from "../logic/element/text/TextEditing.svelte";
+    import SelectLayer from "./layers/SelectLayer.svelte";
     import TrailLayer from "./layers/TrailLayer.svelte";
 
     const app = getAppState();
@@ -16,10 +17,8 @@
     <TrailLayer />
 
     <!-- Polymorphic Tool Layers -->
-    {#if app.toolbox.currentVisualTool.layer}
-        <app.toolbox.currentVisualTool.layer
-            tool={app.toolbox.currentVisualTool}
-        />
+    {#if app.toolbox.currentMode.type === "select"}
+        <SelectLayer />
     {/if}
 
     {#if app.selection.editingText}

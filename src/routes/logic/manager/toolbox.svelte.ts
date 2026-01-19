@@ -1,59 +1,50 @@
-import type { Camera } from "./camera.svelte";
 import { Cursor } from "./cursors.svelte";
-import type { CanvasTool, MouseCoords } from "../tool/tools.svelte";
 import type { CanvasMode } from "../mode/modes.svelte";
+import type { ModeState, MouseCoords } from "../mode/state.svelte";
+import type { ManagerProvider } from "../interface/interface";
 
 export class Toolbox {
-    private readonly camera: Camera;
+    private readonly app: ManagerProvider;
 
-    // High level state
-    currentMode: CanvasMode = $state() as CanvasMode;
-    activeTool: CanvasTool | undefined = $state();
+    currentMode: CanvasMode;
+    currentState: ModeState;
+    cursor: string;
 
-    constructor(defaultMode: CanvasMode, camera: Camera) {
-        this.camera = camera;
-        this.currentMode = defaultMode;
+    constructor(app: ManagerProvider, defaultMode: CanvasMode) {
+        this.app = app;
+        this.currentMode = $state(defaultMode);
+        this.currentState = $state(this.currentMode.Idle);
+        this.cursor = $derived(Cursor.getStyle(this.currentState.cursor));
     }
 
     private getMouseCoords(event: MouseEvent): MouseCoords {
         const screenCoords = { x: event.clientX, y: event.clientY };
-        const canvasCoords = this.camera.toCanvasCoords(screenCoords);
+        const canvasCoords = this.app.camera.toCanvasCoords(screenCoords);
         return { canvas: canvasCoords, screen: screenCoords };
     }
 
-    // The tool that is "default" for the current mode (left-click tool)
-    primaryTool: CanvasTool = $derived.by(() => this.currentMode.toolGroups[0]);
-
-    // The tool currently "in charge" of the cursor/layer visuals
-    currentVisualTool: CanvasTool = $derived(this.activeTool ?? this.primaryTool);
-
-    cursor: string = $derived(Cursor.getStyle(this.currentVisualTool.cursor));
-
     switchMode(mode: CanvasMode) {
         this.currentMode = mode;
+        this.currentState = this.currentMode.Idle;
     }
 
     onPointerDown(event: PointerEvent) {
-        this.activeTool = this.currentMode.toolGroups.at(event.button);
-        if (!this.activeTool) return;
-        this.activeTool.onDown(this.getMouseCoords(event));
+        this.currentState = this.currentMode.stateGroups.at(event.button)?.(this.app, this.getMouseCoords(event)) ?? this.currentMode.Idle;
     }
 
     onPointerMove(event: PointerEvent) {
-        if (!this.activeTool) return;
-        this.activeTool.onMove(this.getMouseCoords(event));
+        this.currentState.onMove(this.getMouseCoords(event));
     }
 
     onPointerUp(event: PointerEvent) {
-        if (!this.activeTool) return;
-        this.activeTool.onUp(this.getMouseCoords(event));
-        this.activeTool = undefined;
+        this.currentState.destroy();
+        this.currentState = this.currentMode.Idle;
     }
 
     onWheel(event: WheelEvent) {
         event.preventDefault(); // prevent browser ctrl+scroll
         const scale = event.deltaY < 1 ? 1.25 : 0.8;
-        this.camera.zoomAt(this.getMouseCoords(event).screen, scale);
+        this.app.camera.zoomAt(this.getMouseCoords(event).screen, scale);
     }
 
     onContextMenu(event: MouseEvent) {

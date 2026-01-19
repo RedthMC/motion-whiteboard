@@ -1,4 +1,4 @@
-import { Rect, Vec2 } from "../math/vector";
+import { Rect } from "../math/vector";
 import type { Element } from "../interface/interface";
 import type { TextElement } from "../element/text/text_element.svelte";
 

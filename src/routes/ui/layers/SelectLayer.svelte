@@ -1,11 +1,9 @@
 <script lang="ts">
     import { getAppState } from "../../logic/context";
-    import type { Select } from "../../logic/tool/select.svelte";
+    import { FramingState } from "../../logic/mode/state/select.svelte";
 
     const app = getAppState();
     const selection = app.selection;
-
-    let { tool }: { tool: Select } = $props();
 </script>
 
 {#each selection.selectedElements as element (element.id)}
@@ -23,8 +21,8 @@
     ></div>
 {/if}
 
-{#if tool.selectionFrame}
-    {@const frame = tool.selectionFrame}
+{#if app.toolbox.currentState instanceof FramingState}
+    {@const frame = app.toolbox.currentState.selectionFrame}
     <div
         class="selection-marquee"
         style:left="{frame.left}px"
