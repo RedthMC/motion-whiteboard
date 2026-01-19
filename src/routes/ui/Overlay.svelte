@@ -3,14 +3,10 @@
     import StylePanel from "./StylePanel.svelte";
     import "../../app.css";
     import { getAppState } from "../logic/context";
-    import { IdleState } from "../logic/mode/modes.svelte";
     const app = getAppState();
 </script>
 
-<div
-    class="overlay-layer"
-    class:tool-active={!(app.toolbox.currentState instanceof IdleState)}
->
+<div class="overlay-layer" class:tool-active={!app.toolbox.isIdle()}>
     <div class="child"><StylePanel /></div>
     <div class="child"><Toolbar /></div>
 </div>

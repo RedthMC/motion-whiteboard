@@ -17,7 +17,7 @@
 <div class="toolbar-container">
     <div class="toolbar">
         <button
-            class:active={app.toolbox.currentMode.type === "select"}
+            class:active={app.toolbox.getModeName() === "select"}
             onclick={() => app.toolbox.switchMode(app.modes.select)}
             aria-label="Select"
         >
@@ -25,7 +25,7 @@
         </button>
 
         <button
-            class:active={app.toolbox.currentMode.type === "draw"}
+            class:active={app.toolbox.getModeName() === "draw"}
             onclick={() => app.toolbox.switchMode(app.modes.draw)}
             aria-label="Draw"
         >
@@ -33,7 +33,7 @@
         </button>
 
         <button
-            class:active={app.toolbox.currentMode.type === "hand"}
+            class:active={app.toolbox.getModeName() === "hand"}
             onclick={() => app.toolbox.switchMode(app.modes.hand)}
             aria-label="Hand"
         >
@@ -41,7 +41,7 @@
         </button>
 
         <button
-            class:active={app.toolbox.currentMode.type === "eraser"}
+            class:active={app.toolbox.getModeName() === "eraser"}
             onclick={() => app.toolbox.switchMode(app.modes.eraser)}
             aria-label="Eraser"
         >

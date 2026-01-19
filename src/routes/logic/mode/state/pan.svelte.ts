@@ -1,17 +1,13 @@
 import { Vec2 } from "../../math/vector";
 import type { ManagerProvider } from "../../interface/interface";
-import type { ModeState, MouseCoords } from "../state.svelte";
+import type { ToolState, MouseCoords } from "../state.svelte";
 
-export function panningState(app: ManagerProvider, mouse: MouseCoords): ModeState {
+export function panningTool(app: ManagerProvider, mouse: MouseCoords): ToolState {
     let prevCoordsScreen = mouse.screen;
-
     const onMove = (coords: MouseCoords) => {
         const displacement = Vec2.subtract(prevCoordsScreen, coords.screen);
         app.camera.moveBy(displacement);
         prevCoordsScreen = coords.screen;
     };
-
-    const destroy = () => { };
-
-    return { cursor: "grabbing", onMove, destroy };
+    return { cursor: "grabbing", onMove };
 }

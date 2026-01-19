@@ -1,33 +1,27 @@
 import type { ManagerProvider } from "../../interface/interface";
 import { Vec2, Rect } from "../../math/vector";
 import { TextElement } from "../../element/text/text_element.svelte";
-import type { ModeState, MouseCoords } from "../state.svelte";
+import { componentWithData, type ToolState, type MouseCoords } from "../state.svelte";
+import FrameLayer from "../../../ui/layers/FrameLayer.svelte";
 
-export class FramingState implements ModeState {
-    readonly cursor = "select";
-    private readonly frameStart: Vec2;
-    private readonly app: ManagerProvider;
-    constructor(app: ManagerProvider, coords: MouseCoords) {
-        this.app = app;
-        this.frameStart = coords.canvas;
-        this.selectionFrame = $state(Rect.fromPoints(coords.canvas, coords.canvas));
-    }
-    selectionFrame: Rect;
-    onMove(coords: MouseCoords) {
-        this.selectionFrame = Rect.fromPoints(this.frameStart, coords.canvas);
-        const elementsInRect = this.app.elements.getElementsByRect(this.selectionFrame);
-        this.app.selection.setSelection(elementsInRect);
-    }
-    destroy() { }
-}
-
-export function selectingState(app: ManagerProvider, coords: MouseCoords): ModeState & { selectionFrame?: Rect; } {
+export function selectingTool(app: ManagerProvider, coords: MouseCoords): ToolState {
     const hit = app.elements.findElementAt(coords.canvas);
     app.selection.editingText = null;
 
     if (!hit) { // Frame selection if no hits
         app.selection.clearSelection();
-        return new FramingState(app, coords);
+
+        const frameStart = coords.canvas;
+        let selectionFrame = $state(Rect.fromPoints(coords.canvas, coords.canvas));
+        const layer = () => componentWithData(FrameLayer, { frame: selectionFrame });
+
+        const onMove = (coords: MouseCoords) => {
+            selectionFrame = Rect.fromPoints(frameStart, coords.canvas);
+            const elementsInRect = app.elements.getElementsByRect(selectionFrame);
+            app.selection.setSelection(elementsInRect);
+        };
+
+        return { cursor: "select", onMove, layer };
     }
 
     // If hit element is NOT already selected, select only it.

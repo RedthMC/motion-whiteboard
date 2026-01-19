@@ -1,67 +1,97 @@
 import type { ManagerProvider } from "../interface/interface";
-import { type ModeState, type MouseCoords } from "./state.svelte";
-import { drawingState } from "./state/drawing.svelte";
-import { panningState } from "./state/pan.svelte";
-import { erasingState } from "./state/erasing.svelte";
-import { selectingState } from "./state/select.svelte";
+import { type ToolState, type MouseCoords, type ComponentWithData, componentWithData } from "./state.svelte";
+import { pencilTool } from "./state/drawing.svelte";
+import { panningTool } from "./state/pan.svelte";
+import { eraserTool } from "./state/erasing.svelte";
+import { selectingTool } from "./state/select.svelte";
 import type { CursorName } from "../manager/cursors.svelte";
+import SelectLayer from "../../ui/layers/SelectLayer.svelte";
 
-type StateGroup = ((app: ManagerProvider, mouse: MouseCoords) => ModeState)[];
+type ToolGroup = ((app: ManagerProvider, mouse: MouseCoords) => ToolState)[];
 
-export interface CanvasMode {
+interface ModeOptions {
     readonly type: string;
-    readonly Idle: ModeState;
-    readonly stateGroups: StateGroup;
+    readonly modeLayer?: ComponentWithData;
+    readonly idleCursor: CursorName;
+    readonly toolGroup: ToolGroup;
 }
 
-export class IdleState implements ModeState {
-    readonly cursor: CursorName;
-    constructor(cursor: CursorName) { this.cursor = cursor; }
-    onMove() { }
-    destroy() { }
+export interface Mode {
+    readonly type: string;
+    getCursor(): CursorName;
+    getRenderLayers(): ComponentWithData[];
+    isIdle(): boolean;
+    onDown(button: number, mouse: MouseCoords): void;
+    onMove(mouse: MouseCoords): void;
+    onUp(): void;
+    destroy(): void;
 }
 
-export class SelectMode implements CanvasMode {
-    readonly type = "select";
-    readonly Idle = new IdleState("select");
-    readonly stateGroups: StateGroup = [
-        selectingState,
-        panningState
-    ];
+function stateMachine(app: ManagerProvider, mode: ModeOptions): Mode {
+    let state: ToolState | undefined = $state();
+    return {
+        type: mode.type,
+        getCursor: () => state?.cursor ?? mode.idleCursor,
+        getRenderLayers: () => [state?.layer?.(), mode.modeLayer].filter(l => l !== undefined),
+        isIdle: () => state === undefined,
+
+        onDown: (button: number, mouse: MouseCoords) => {
+            state?.destroy?.();
+            state = mode.toolGroup.at(button)?.(app, mouse);
+        },
+        onMove: (mouse: MouseCoords) => {
+            state?.onMove(mouse);
+        },
+        onUp: () => {
+            state?.destroy?.();
+            state = undefined;
+        },
+        destroy: () => {
+            state?.destroy?.();
+            state = undefined;
+        }
+    };
 }
 
-export class DrawMode implements CanvasMode {
-    readonly type = "draw";
-    readonly Idle = new IdleState("pencil");
-    readonly stateGroups: StateGroup = [
-        drawingState,
-        panningState,
-        erasingState
-    ];
+function modeFactory(mode: ModeOptions): ModeFactory {
+    return (app) => stateMachine(app, mode);
 }
 
-export class EraserMode implements CanvasMode {
-    readonly type = "eraser";
-    readonly Idle = new IdleState("eraser");
-    readonly stateGroups: StateGroup = [
-        erasingState,
-        panningState
-    ];
-}
-
-export class HandMode implements CanvasMode {
-    readonly type = "hand";
-    readonly Idle = new IdleState("grab");
-    readonly stateGroups: StateGroup = [
-        panningState,
-        panningState
-    ];
-}
-
-export const Modes = {
-    select: new SelectMode(),
-    draw: new DrawMode(),
-    eraser: new EraserMode(),
-    hand: new HandMode()
+export type ModeFactory = (app: ManagerProvider) => Mode;
+export const ModeFactory: Record<string, ModeFactory> = {
+    select: modeFactory({
+        type: "select",
+        modeLayer: componentWithData(SelectLayer, {}),
+        idleCursor: "select",
+        toolGroup: [
+            selectingTool,
+            panningTool
+        ]
+    }),
+    draw: modeFactory({
+        type: "draw",
+        idleCursor: "pencil",
+        toolGroup: [
+            pencilTool,
+            panningTool,
+            eraserTool
+        ]
+    }),
+    eraser: modeFactory({
+        type: "eraser",
+        idleCursor: "eraser",
+        toolGroup: [
+            eraserTool,
+            panningTool
+        ]
+    }),
+    hand: modeFactory({
+        type: "hand",
+        idleCursor: "grab",
+        toolGroup: [
+            panningTool,
+            panningTool
+        ]
+    })
 }
 

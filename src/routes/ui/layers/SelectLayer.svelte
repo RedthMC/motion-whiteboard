@@ -1,6 +1,5 @@
 <script lang="ts">
     import { getAppState } from "../../logic/context";
-    import { FramingState } from "../../logic/mode/state/select.svelte";
 
     const app = getAppState();
     const selection = app.selection;
@@ -14,17 +13,6 @@
     {@const frame = selection.selectedFrame}
     <div
         class="selection-marquee pinned"
-        style:left="{frame.left}px"
-        style:top="{frame.top}px"
-        style:width="{frame.right - frame.left}px"
-        style:height="{frame.bottom - frame.top}px"
-    ></div>
-{/if}
-
-{#if app.toolbox.currentState instanceof FramingState}
-    {@const frame = app.toolbox.currentState.selectionFrame}
-    <div
-        class="selection-marquee"
         style:left="{frame.left}px"
         style:top="{frame.top}px"
         style:width="{frame.right - frame.left}px"

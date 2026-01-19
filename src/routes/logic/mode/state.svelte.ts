@@ -1,3 +1,4 @@
+import type { Component } from "svelte";
 import type { CursorName } from "../manager/cursors.svelte";
 import { Vec2 } from "../math/vector";
 
@@ -6,15 +7,21 @@ export type MouseCoords = {
     canvas: Vec2;
 };
 
-export type ModeState = {
-    readonly cursor: CursorName;
-    onMove(mouse: MouseCoords): void;
-    destroy(): void;
+export type ComponentWithData = {
+    component: Component<any>;
+    data: any;
 };
-export function stateManager<T extends ModeState>(initialState: T): T {
-    const state = $state(initialState);
-    $effect(() => state.destroy());
-    return state;
+
+export function componentWithData<T extends Record<string, any>>(component: Component<T>, data: T): ComponentWithData {
+    return { component, data };
 }
+
+export type ToolState = {
+    readonly cursor: CursorName;
+    readonly layer?: () => ComponentWithData;
+
+    onMove(mouse: MouseCoords): void;
+    destroy?(): void;
+};
 
 

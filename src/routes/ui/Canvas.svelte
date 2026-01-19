@@ -1,10 +1,10 @@
 <script lang="ts">
     import { getAppState } from "../logic/context";
     import TextEditing from "../logic/element/text/TextEditing.svelte";
-    import SelectLayer from "./layers/SelectLayer.svelte";
     import TrailLayer from "./layers/TrailLayer.svelte";
 
     const app = getAppState();
+    const renderLayers = $derived(app.toolbox.getRenderLayers());
 </script>
 
 <div class="element-layer" style:transform={app.camera.tranformationStyle}>
@@ -17,9 +17,9 @@
     <TrailLayer />
 
     <!-- Polymorphic Tool Layers -->
-    {#if app.toolbox.currentMode.type === "select"}
-        <SelectLayer />
-    {/if}
+    {#each renderLayers as layer}
+        <layer.component {...layer.data} />
+    {/each}
 
     {#if app.selection.editingText}
         <TextEditing object={app.selection.editingText} />

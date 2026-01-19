@@ -1,7 +1,7 @@
 import type { ManagerProvider } from "../../interface/interface";
-import type { ModeState, MouseCoords } from "../state.svelte";
+import type { ToolState, MouseCoords } from "../state.svelte";
 
-export function erasingState(app: ManagerProvider, coords: MouseCoords): ModeState {
+export function eraserTool(app: ManagerProvider, coords: MouseCoords): ToolState {
     app.trail.addPoint(coords.canvas);
 
     app.elements.filterUpElements(el => !el.hitTest(coords.canvas));
@@ -9,8 +9,5 @@ export function erasingState(app: ManagerProvider, coords: MouseCoords): ModeSta
         app.trail.addPoint(coords.canvas);
         app.elements.filterUpElements(el => !el.hitTest(coords.canvas));
     };
-
-    const destroy = () => { };
-
-    return { cursor: "eraser", onMove, destroy };
+    return { cursor: "eraser", onMove };
 }

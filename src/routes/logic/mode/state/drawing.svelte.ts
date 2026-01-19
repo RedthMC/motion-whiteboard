@@ -1,10 +1,10 @@
 import type { ManagerProvider } from "../../interface/interface";
 import { getSvgPathFromVec2Points } from "../../math/stroke";
-import type { ModeState, MouseCoords } from "../state.svelte";
+import type { ToolState, MouseCoords } from "../state.svelte";
 import { Vec2, Rect } from "../../math/vector";
 import { StrokeElement } from "../../element/stroke/stroke_element.svelte";
 
-export function drawingState(app: ManagerProvider, mouse: MouseCoords): ModeState {
+export function pencilTool(app: ManagerProvider, mouse: MouseCoords): ToolState {
     const initialCoords = mouse.canvas;
     const drawingStroke = app.elements.addElement(new StrokeElement(
         mouse.canvas,
@@ -22,7 +22,5 @@ export function drawingState(app: ManagerProvider, mouse: MouseCoords): ModeStat
         drawingStroke.path = getSvgPathFromVec2Points(drawingStroke.points);
     };
 
-    const destroy = () => { };
-
-    return { cursor: "pencil", onMove, destroy };
+    return { cursor: "pencil", onMove };
 }

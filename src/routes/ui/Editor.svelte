@@ -12,7 +12,7 @@
 <div class="bg">
     <div
         class="interactions"
-        style:cursor={app.toolbox.cursor}
+        style:cursor={app.toolbox.getCursorStyle()}
         onpointerdown={(e) => app.toolbox.onPointerDown(e)}
         onpointermove={(e) => app.toolbox.onPointerMove(e)}
         onpointerup={(e) => app.toolbox.onPointerUp(e)}

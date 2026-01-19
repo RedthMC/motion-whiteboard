@@ -1,20 +1,15 @@
 import { Cursor } from "./cursors.svelte";
-import type { CanvasMode } from "../mode/modes.svelte";
-import type { ModeState, MouseCoords } from "../mode/state.svelte";
+import type { ModeFactory, Mode } from "../mode/modes.svelte";
+import type { MouseCoords } from "../mode/state.svelte";
 import type { ManagerProvider } from "../interface/interface";
 
 export class Toolbox {
     private readonly app: ManagerProvider;
+    private currentMode: Mode;
 
-    currentMode: CanvasMode;
-    currentState: ModeState;
-    cursor: string;
-
-    constructor(app: ManagerProvider, defaultMode: CanvasMode) {
+    constructor(app: ManagerProvider, defaultMode: ModeFactory) {
         this.app = app;
-        this.currentMode = $state(defaultMode);
-        this.currentState = $state(this.currentMode.Idle);
-        this.cursor = $derived(Cursor.getStyle(this.currentState.cursor));
+        this.currentMode = $state(defaultMode(app));
     }
 
     private getMouseCoords(event: MouseEvent): MouseCoords {
@@ -23,22 +18,37 @@ export class Toolbox {
         return { canvas: canvasCoords, screen: screenCoords };
     }
 
-    switchMode(mode: CanvasMode) {
-        this.currentMode = mode;
-        this.currentState = this.currentMode.Idle;
+    getCursorStyle() {
+        return Cursor.getStyle(this.currentMode.getCursor());
+    }
+
+    getModeName() {
+        return this.currentMode.type;
+    }
+
+    isIdle() {
+        return this.currentMode.isIdle();
+    }
+
+    getRenderLayers() {
+        return this.currentMode.getRenderLayers();
+    }
+
+    switchMode(factory: ModeFactory) {
+        this.currentMode.destroy();
+        this.currentMode = factory(this.app);
     }
 
     onPointerDown(event: PointerEvent) {
-        this.currentState = this.currentMode.stateGroups.at(event.button)?.(this.app, this.getMouseCoords(event)) ?? this.currentMode.Idle;
+        this.currentMode.onDown(event.button, this.getMouseCoords(event));
     }
 
     onPointerMove(event: PointerEvent) {
-        this.currentState.onMove(this.getMouseCoords(event));
+        this.currentMode.onMove(this.getMouseCoords(event));
     }
 
     onPointerUp(event: PointerEvent) {
-        this.currentState.destroy();
-        this.currentState = this.currentMode.Idle;
+        this.currentMode.onUp();
     }
 
     onWheel(event: WheelEvent) {
