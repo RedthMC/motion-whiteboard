@@ -1,5 +1,3 @@
-import type { Toolbox } from "./tool.svelte";
-
 const Icons = {
     pencil: {
         path: `<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>`,
@@ -21,26 +19,25 @@ const Icons = {
         path: `<path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/>`,
         hotspot: { x: 2, y: 2 }
     },
+    select: {
+        path: `<path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/>`,
+        hotspot: { x: 3, y: 3 }
+    },
 };
 
-export type CursorName = keyof typeof Icons;
-export class Cursor {
-    private readonly toolbox: Toolbox;
-    constructor(toolbox: Toolbox) { this.toolbox = toolbox; }
-
-    private getCursor(
-        name: CursorName,
-        color: string = "black"
-    ): string {
-        const icon = Icons[name];
-        // double rendering to create a white border (stroke) around the icon
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="-2 -2 28 28" fill="none" stroke-linecap="round" stroke-linejoin="round">
+function getStyle(
+    name: CursorName,
+    color: string = "black"
+): string {
+    const icon = Icons[name];
+    // double rendering to create a white border (stroke) around the icon
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="-2 -2 28 28" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <g stroke="white" stroke-width="5">${icon.path}</g>
             <g stroke="${color}" stroke-width="2">${icon.path}</g>   
         </svg>`;
-        const url = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-        return `url('${url}') ${icon.hotspot.x} ${icon.hotspot.y}, auto`;
-    }
+    const url = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    return `url('${url}') ${icon.hotspot.x} ${icon.hotspot.y}, auto`;
+};
 
-    get style() { return this.getCursor(this.toolbox.cursorName); }
-}
+export type CursorName = keyof typeof Icons;
+export const Cursor = { getStyle };

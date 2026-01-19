@@ -15,7 +15,11 @@
 
 <div class="toolbar-container">
     <div class="toolbar">
-        <button disabled aria-label="Select">
+        <button
+            class:active={app.toolbox.selectedTool === "select"}
+            onclick={() => app.toolbox.switchTool("select")}
+            aria-label="Select"
+        >
             <MousePointer2 size={20} />
         </button>
 

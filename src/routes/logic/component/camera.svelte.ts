@@ -1,4 +1,4 @@
-import type { Vec2, Vec3 } from "./math/vector";
+import type { Vec2, Vec3 } from "../math/vector";
 
 
 export class Camera {

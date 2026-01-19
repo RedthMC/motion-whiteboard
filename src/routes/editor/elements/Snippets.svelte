@@ -1,22 +1,23 @@
 <script module lang="ts">
-    import type * as types from "../../logic/elements.svelte";
-
-    type SnippetMapType = {
-        [E in types.Element as E["type"]]: (
-            object: E,
-        ) => ReturnType<import("svelte").Snippet>;
-    };
-
-    const snippetMap: SnippetMapType = {
-        stroke,
-        text,
-    };
-
-    export { renderElement };
+    import type * as types from "../../logic/component/elements.svelte";
+    export { renderElement, renderHighlight };
+    import "../../overlay/theme.css";
 </script>
 
-{#snippet renderElement(/* @ts-ignore */ object: types.Element)}
-    {@render snippetMap[object.type](object)}
+{#snippet renderElement(object: types.Element)}
+    {#if object.type === "stroke"}
+        {@render stroke(object)}
+    {:else if object.type === "text"}
+        {@render text(object)}
+    {/if}
+{/snippet}
+
+{#snippet renderHighlight(object: types.Element)}
+    {#if object.type === "stroke"}
+        {@render highlightStroke(object)}
+    {:else if object.type === "text"}
+        {@render highlightText(object)}
+    {/if}
 {/snippet}
 
 {#snippet stroke(object: types.Stroke)}
@@ -31,19 +32,28 @@
             stroke={object.color}
             stroke-width={2 ** object.size}
         />
-        <!-- <rect
-            width={object.boundingBox.end.x - object.boundingBox.start.x}
-            height={object.boundingBox.end.y - object.boundingBox.start.y}
-            x={object.boundingBox.start.x}
-            y={object.boundingBox.start.y}
+    </svg>
+{/snippet}
+
+{#snippet highlightStroke(object: types.Stroke)}
+    <svg
+        class="elements highlight"
+        style:transform={`translate(${object.position.x}px, ${object.position.y}px)`}
+    >
+        <path
+            d={object.path}
+            stroke-linecap="round"
             fill="none"
-            stroke="blue"
-            stroke-width="2"
-        /> -->
+            stroke-width={2 ** (object.size + 1)}
+        />
     </svg>
 {/snippet}
 
 {#snippet text(object: types.Text)}
+    <p class="elements">{object.text}</p>
+{/snippet}
+
+{#snippet highlightText(object: types.Text)}
     <p class="elements">{object.text}</p>
 {/snippet}
 
@@ -55,5 +65,9 @@
         overflow: visible;
         pointer-events: none;
         transform-origin: top left;
+    }
+    .highlight {
+        stroke: var(--color-primary);
+        stroke-opacity: 0.7;
     }
 </style>

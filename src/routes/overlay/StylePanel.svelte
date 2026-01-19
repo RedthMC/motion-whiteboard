@@ -10,10 +10,10 @@
             <button
                 class="color-btn"
                 style:background-color={color}
-                onclick={() => (app.styleManager.style.color = color)}
+                onclick={() => (app.styleManager.color = color)}
                 aria-label="Select color {color}"
             >
-                {#if app.styleManager.style.color === color}
+                {#if app.styleManager.color === color}
                     <div class="dot"></div>
                 {/if}
             </button>
@@ -28,8 +28,8 @@
             type="range"
             min={1}
             max={4}
-            style:--size={1.25 ** app.styleManager.style.size}
-            bind:value={app.styleManager.style.size}
+            style:--size={1.25 ** app.styleManager.size}
+            bind:value={app.styleManager.size}
         />
     </div>
 </div>

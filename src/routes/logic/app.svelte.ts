@@ -1,34 +1,28 @@
-import { Camera } from "./camera.svelte";
-import { Cursor } from "./cursors.svelte";
-import { ElementManager } from "./elements.svelte";
-import { Toolbox } from "./tool.svelte";
+import { Camera } from "./component/camera.svelte";
+import { ElementManager } from "./component/elements.svelte";
+import { Toolbox } from "./component/toolbox.svelte";
+import { Pan, Brush, Eraser, Select } from "./tool/tools.svelte";
+import { StyleManager } from "./component/style_manager.svelte";
 
 export class AppState {
     readonly elements = new ElementManager();
     readonly camera = new Camera();
     readonly styleManager = new StyleManager();
-    readonly toolbox = new Toolbox(this.elements, this.camera, this.styleManager);
-    readonly cursor = new Cursor(this.toolbox);
-}
 
-export class StyleManager {
-    readonly colors = [
-        "#000000",
-        "#9ca3af",
-        "#e879f9",
-        "#a855f7",
-        "#3b82f6",
-        "#0ea5e9",
-        "#f59e0b",
-        "#f97316",
-        "#098d44",
-        "#22c55e",
-        "#f08193",
-        "#ef4444",
-    ];
+    // Tools wiring
+    private readonly pan = new Pan(this.camera);
+    private readonly brush = new Brush(this.elements, this.styleManager);
+    private readonly eraser = new Eraser(this.elements);
+    private readonly select = new Select(this.elements);
 
-    style = $state({
-        color: this.colors[0],
-        size: 3,
-    });
+    readonly toolbox = new Toolbox<"hand" | "draw" | "eraser" | "select">(
+        {
+            hand: [this.pan, this.pan, this.pan],
+            draw: [this.brush, this.pan, this.eraser],
+            eraser: [this.eraser, this.pan],
+            select: [this.select, this.pan],
+        },
+        "draw",
+        this.camera
+    );
 }

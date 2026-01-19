@@ -25,19 +25,20 @@ graph TD
     
     subgraph Logic
       AppState(app.svelte.ts)
-      AppState --> Camera(camera.svelte.ts)
-      AppState --> ElementManager(elements.svelte.ts)
-      AppState --> StyleManager(app.svelte.ts)
+      AppState --> Camera(Camera)
+      AppState --> ElementManager(ElementManager)
+      AppState --> StyleManager(StyleManager)
       
-      AppState -- injects --> Toolbox(tool.svelte.ts)
-      Toolbox --> Camera
-      Toolbox --> ElementManager
-      Toolbox --> StyleManager
-
-      AppState -- injects --> Cursor(cursors.svelte.ts)
-      Cursor --> Toolbox
+      AppState -- creates --> Tools(Pan, Brush, Eraser)
+      AppState -- creates --> Toolbox(Toolbox)
       
-      Toolbox -- manages --> Tools(Pan, Brush, Eraser)
+      Tools --> Camera
+      Tools --> ElementManager
+      Tools --> StyleManager
+      
+      Toolbox -- manages --> Tools
+      Toolbox -- uses --> Cursor(Cursor)
+      Toolbox -- uses --> Camera
     end
 ```
 
@@ -52,14 +53,18 @@ src/
 │  │  ├─ Canvas.svelte         → Main drawing area
 │  │  └─ Editor.svelte         → Main editor container
 │  ├─ logic/
+│  │  ├─ component/            → State & Logic components
+│  │  │  ├─ camera.svelte.ts      → Zoom & Pan logic
+│  │  │  ├─ cursors.svelte.ts     → Cursor SVGs & Styles
+│  │  │  ├─ elements.svelte.ts    → ElementManager & Types
+│  │  │  ├─ style_manager.svelte.ts → Style management
+│  │  │  └─ toolbox.svelte.ts     → Toolbox orchestration
 │  │  ├─ math/
 │  │  │  ├─ stroke.ts          → SVG path generation
 │  │  │  └─ vector.ts          → Vector math helpers
-│  │  ├─ app.svelte.ts         → AppState & StyleManager
-│  │  ├─ camera.svelte.ts      → Zoom & Pan logic
-│  │  ├─ cursors.svelte.ts     → Cursor logic & SVG generation
-│  │  ├─ elements.svelte.ts    → ElementManager & Types
-│  │  └─ tool.svelte.ts        → Toolbox & Tool logic
+│  │  ├─ tool/                 → Tool implementations
+│  │  │  └─ tools.svelte.ts       → Pan, Brush, Eraser
+│  │  └─ app.svelte.ts         → Main AppState entry point
 │  ├─ overlay/
 │  │  ├─ Overlay.svelte        → Overlay container (interaction layer)
 │  │  ├─ StylePanel.svelte     → Color & Size picker
