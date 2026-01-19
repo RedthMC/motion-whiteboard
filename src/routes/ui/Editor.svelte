@@ -1,6 +1,6 @@
 <script lang="ts">
     import { AppState } from "../logic/app.svelte";
-    import Overlay from "../overlay/Overlay.svelte";
+    import Overlay from "../ui/Overlay.svelte";
     import Canvas from "./Canvas.svelte";
 
     const app = $state(new AppState());
@@ -18,9 +18,8 @@
         onpointerup={(e) => app.toolbox.onPointerUp(e)}
         onwheel={(e) => app.toolbox.onWheel(e)}
         oncontextmenu={(e) => app.toolbox.onContextMenu(e)}
-    >
-        <Canvas {app} />
-    </div>
+    ></div>
+    <Canvas {app} />
     <Overlay {app} />
 </div>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Toolbar from "./Toolbar.svelte";
     import StylePanel from "./StylePanel.svelte";
-    import "./theme.css";
+    import "../../app.css";
     import type { AppState } from "../logic/app.svelte";
 
     const { app }: { app: AppState } = $props();

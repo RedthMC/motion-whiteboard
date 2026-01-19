@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Editor from "./editor/Editor.svelte";
+	import Editor from "./ui/Editor.svelte";
 </script>
 
 <svelte:head>

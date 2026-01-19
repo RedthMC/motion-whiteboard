@@ -64,6 +64,12 @@ export const Rect = {
         r1.right >= r2.right &&
         r1.bottom >= r2.bottom
     ),
+    merge: (r1: Rect, r2: Rect): Rect => ({
+        left: Math.min(r1.left, r2.left),
+        top: Math.min(r1.top, r2.top),
+        right: Math.max(r1.right, r2.right),
+        bottom: Math.max(r1.bottom, r2.bottom),
+    }),
     fromPoints: (a: Vec2, b: Vec2): Rect => ({
         left: Math.min(a.x, b.x),
         top: Math.min(a.y, b.y),

@@ -59,5 +59,4 @@ export class Toolbox<Key extends string> {
     onContextMenu(event: MouseEvent) {
         event.preventDefault();
     }
-
 }

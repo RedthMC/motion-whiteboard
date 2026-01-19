@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { AppState } from "../logic/app.svelte";
+
     import {
         Pencil,
         Eraser,
@@ -9,7 +10,7 @@
         Ellipsis,
         MousePointer2,
     } from "lucide-svelte";
-
+    import "../../app.css";
     const { app }: { app: AppState } = $props();
 </script>
 
@@ -49,7 +50,7 @@
 
         <div class="separator"></div>
 
-        <button aria-label="Text" disabled>
+        <button aria-label="Text" onclick={() => app.createText()}>
             <Type size={20} />
         </button>
 

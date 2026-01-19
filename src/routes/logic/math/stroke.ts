@@ -73,7 +73,7 @@ export function getSvgPathFromPoints(points: Point[], closed = false): string {
     }
 }
 
-export function getSvgPathFromStrokePoints(vec2s: Vec2[], closed = false): string {
+export function getSvgPathFromVec2Points(vec2s: Vec2[], closed = false): string {
     const points = getStrokePoints(vec2s);
     const len = points.length;
 
