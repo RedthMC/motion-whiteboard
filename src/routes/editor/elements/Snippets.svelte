@@ -1,8 +1,14 @@
 <script module lang="ts">
     import type * as types from "../../logic/component/elements.svelte";
-    export { renderElement, renderHighlight };
+    export { renderElement, renderHighlight, renderEraserTrail };
     import "../../overlay/theme.css";
 </script>
+
+{#snippet renderEraserTrail(path: string)}
+    <svg class="elements eraser-trail">
+        <path d={path} stroke-linecap="round" />
+    </svg>
+{/snippet}
 
 {#snippet renderElement(object: types.Element)}
     {#if object.type === "stroke"}
@@ -69,5 +75,9 @@
     .highlight {
         stroke: var(--color-primary);
         stroke-opacity: 0.7;
+    }
+    .eraser-trail {
+        fill: #94a3b8;
+        fill-opacity: 0.2;
     }
 </style>

@@ -1,6 +1,27 @@
 import { getStrokePoints } from "perfect-freehand";
+import * as freehand from "perfect-freehand";
+import type { Vec2 } from "./vector";
 
 type Point = number[];
+
+type TimedPoint = Vec2 & { time: number; };
+
+export class ScribbleBuilder {
+    private points: TimedPoint[] = [];
+    private lastingDuration: number = 100;
+
+    addPoint(point: Vec2) {
+        this.points.push({ ...point, time: Date.now() });
+    }
+
+    buildPath(thickness: number): string {
+        this.points = this.points.filter(p => Date.now() - p.time < this.lastingDuration);
+        const withPressure = this.points.map(p => [p.x, p.y]);
+        const strokePoints = getStrokePoints(withPressure);
+        const stroke = freehand.getStrokeOutlinePoints(strokePoints, { start: { taper: true }, size: thickness });
+        return getSvgPathFromPoints(stroke, true);
+    }
+}
 
 function precise(A: Point) {
     return `${toDomPrecision(A[0])},${toDomPrecision(A[1])} `;
@@ -14,7 +35,45 @@ function average(A: Point, B: Point) {
     return `${toDomPrecision((A[0] + B[0]) / 2)},${toDomPrecision((A[1] + B[1]) / 2)} `;
 }
 
-export function getSvgPathFromStrokePoints(vec2s: { x: number, y: number; }[], closed = false): string {
+export function getSvgPathFromPoints(points: Point[], closed = false): string {
+    const len = points.length;
+
+    if (len < 2) return '';
+
+    let a = points[0];
+    let b = points[1];
+
+    if (len === 2) return `M${precise(a)}L${precise(b)}`;
+
+    let result = '';
+
+    for (let i = 2, max = len - 1; i < max; i++) {
+        a = points[i];
+        b = points[i + 1];
+        result += average(a, b);
+    }
+
+    if (closed) {
+        // If closed, draw a curve from the last point to the first
+        return `M${average(points[0], points[1])}Q${precise(points[1])}${average(
+            points[1],
+            points[2]
+        )}T${result}${average(points[len - 1], points[0])}${average(
+            points[0],
+            points[1]
+        )}Z`;
+    } else {
+        // If not closed, draw a curve starting at the first point and
+        // ending at the midpoint of the last and second-last point, then
+        // complete the curve with a line segment to the last point.
+        return `M${precise(points[0])}Q${precise(points[1])}${average(
+            points[1],
+            points[2]
+        )}${points.length > 3 ? 'T' : ''}${result}L${precise(points[len - 1])}`;
+    }
+}
+
+export function getSvgPathFromStrokePoints(vec2s: Vec2[], closed = false): string {
     const points = getStrokePoints(vec2s);
     const len = points.length;
 

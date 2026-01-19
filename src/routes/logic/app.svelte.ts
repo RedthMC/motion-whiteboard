@@ -12,8 +12,8 @@ export class AppState {
     // Tools wiring
     private readonly pan = new Pan(this.camera);
     private readonly brush = new Brush(this.elements, this.styleManager);
-    private readonly eraser = new Eraser(this.elements);
-    private readonly select = new Select(this.elements);
+    readonly eraser = new Eraser(this.elements);
+    readonly select = new Select(this.elements);
 
     readonly toolbox = new Toolbox<"hand" | "draw" | "eraser" | "select">(
         {

@@ -34,6 +34,12 @@ export const Vec3 = {
 
 export type Rect = { left: number, top: number, right: number, bottom: number; };
 export const Rect = {
+    add: (rect: Rect, point: Vec2): Rect => ({
+        left: rect.left + point.x,
+        top: rect.top + point.y,
+        right: rect.right + point.x,
+        bottom: rect.bottom + point.y,
+    }),
     inRect: (rect: Rect, point: Vec2) => (
         rect.left < point.x &&
         point.x < rect.right &&
@@ -48,9 +54,15 @@ export const Rect = {
     }),
     intersect: (r1: Rect, r2: Rect) => !(
         r2.left > r1.right ||
-        r2.right < r1.left ||
         r2.top > r1.bottom ||
+        r2.right < r1.left ||
         r2.bottom < r1.top
+    ),
+    contain: (r1: Rect, r2: Rect): boolean => (
+        r1.left <= r2.left &&
+        r1.top <= r2.top &&
+        r1.right >= r2.right &&
+        r1.bottom >= r2.bottom
     ),
     fromPoints: (a: Vec2, b: Vec2): Rect => ({
         left: Math.min(a.x, b.x),

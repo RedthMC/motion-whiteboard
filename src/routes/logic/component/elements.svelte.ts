@@ -2,8 +2,7 @@ import { getSvgPathFromStrokePoints } from "../math/stroke";
 import { Rect, Vec2 } from "../math/vector";
 
 export class ElementManager implements Iterable<Element> {
-    elements: Element[] = $state([]);
-    selectedElements: Element[] = $state([]);
+    private elements: Element[] = $state([]);
 
     [Symbol.iterator]() {
         return this.elements[Symbol.iterator]();
@@ -28,27 +27,24 @@ export class ElementManager implements Iterable<Element> {
     }
 
     findElementAt(pos: Vec2): Element | undefined {
-        return this.findElement((el) => {
-            if (el.type === "stroke") {
-                const relativePos = Vec2.subtract(pos, el.position);
-                return Rect.inRect(el.boundingBox, relativePos);
+        // Search in reverse order to find the top-most element
+        for (let i = this.elements.length - 1; i >= 0; i--) {
+            const el = this.elements[i];
+            const relativePos = Vec2.subtract(pos, el.position);
+            if (Rect.inRect(el.boundingBox, relativePos)) {
+                return el;
             }
-            return false;
+        }
+        return undefined;
+    }
+
+    getElementsByRect(frame: Rect): Element[] {
+        return this.elements.filter((el) => {
+            const absRect = Rect.add(el.boundingBox, el.position);
+            return Rect.intersect(absRect, frame);
         });
     }
 
-    select(element: Element) {
-        this.selectedElements.push(element);
-
-    }
-
-    deselect(element: Element) {
-        this.selectedElements.splice(this.selectedElements.indexOf(element), 1);
-    }
-
-    clearSelection() {
-        this.selectedElements = [];
-    }
 }
 
 export type Element = Stroke | Text;
