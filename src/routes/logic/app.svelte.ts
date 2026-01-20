@@ -5,7 +5,6 @@ import type { ManagerProvider } from "./interface/interface";
 import { ElementManager } from "./element/elements.svelte";
 import { TextElement } from "./element/text/text_element.svelte";
 import { SelectionManager } from "./manager/selection.svelte";
-import { ModeFactory } from "./mode/modes.svelte";
 import { TrailManager } from "./manager/trail_manager.svelte";
 
 export class AppState implements ManagerProvider {
@@ -14,8 +13,7 @@ export class AppState implements ManagerProvider {
     readonly styleManager = new StyleManager();
     readonly selection = new SelectionManager();
     readonly trail = new TrailManager(25);
-    readonly modes = ModeFactory;
-    readonly toolbox = new Toolbox(this, this.modes.draw);
+    readonly toolbox = new Toolbox(this, "draw");
 
     createText() {
         this.elements.addElement(new TextElement(

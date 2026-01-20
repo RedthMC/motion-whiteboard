@@ -18,7 +18,7 @@
     <div class="toolbar">
         <button
             class:active={app.toolbox.getModeName() === "select"}
-            onclick={() => app.toolbox.switchMode(app.modes.select)}
+            onclick={() => app.toolbox.switchMode("select")}
             aria-label="Select"
         >
             <MousePointer2 size={20} />
@@ -26,7 +26,7 @@
 
         <button
             class:active={app.toolbox.getModeName() === "draw"}
-            onclick={() => app.toolbox.switchMode(app.modes.draw)}
+            onclick={() => app.toolbox.switchMode("draw")}
             aria-label="Draw"
         >
             <Pencil size={20} />
@@ -34,7 +34,7 @@
 
         <button
             class:active={app.toolbox.getModeName() === "hand"}
-            onclick={() => app.toolbox.switchMode(app.modes.hand)}
+            onclick={() => app.toolbox.switchMode("hand")}
             aria-label="Hand"
         >
             <Hand size={20} />
@@ -42,7 +42,7 @@
 
         <button
             class:active={app.toolbox.getModeName() === "eraser"}
-            onclick={() => app.toolbox.switchMode(app.modes.eraser)}
+            onclick={() => app.toolbox.switchMode("eraser")}
             aria-label="Eraser"
         >
             <Eraser size={20} />

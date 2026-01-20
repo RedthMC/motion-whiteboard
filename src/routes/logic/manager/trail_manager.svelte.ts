@@ -21,7 +21,7 @@ export class TrailManager {
         if (this.timer) return;
         this.timer = setInterval(() => {
             const path = this.scribbleBuilder.buildPath(this.thickness);
-            if (!path) { // If path is null, we can stop the timer to save resources
+            if (path === null) { // If path is null, we can stop the timer to save resources
                 this.stopTimer();
                 return;
             }
