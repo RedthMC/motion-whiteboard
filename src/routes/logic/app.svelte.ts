@@ -4,14 +4,12 @@ import { StyleManager } from "./manager/style_manager.svelte";
 import type { ManagerProvider } from "./interface/interface";
 import { ElementManager } from "./element/elements.svelte";
 import { TextElement } from "./element/text/text_element.svelte";
-import { SelectionManager } from "./manager/selection.svelte";
 import { TrailManager } from "./manager/trail_manager.svelte";
 
 export class AppState implements ManagerProvider {
     readonly elements = new ElementManager();
     readonly camera = new Camera();
     readonly styleManager = new StyleManager();
-    readonly selection = new SelectionManager();
     readonly trail = new TrailManager(25);
     readonly toolbox = new Toolbox(this, "draw");
 

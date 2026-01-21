@@ -1,6 +1,5 @@
 <script lang="ts">
     import { getAppState } from "../logic/context";
-    import TextEditing from "../logic/element/text/TextEditing.svelte";
     import TrailLayer from "./layers/TrailLayer.svelte";
 
     const app = getAppState();
@@ -9,9 +8,7 @@
 
 <div class="element-layer" style:transform={app.camera.tranformationStyle}>
     {#each app.elements as element (element.id)}
-        {#if element !== app.selection.editingText}
-            <element.component object={element} />
-        {/if}
+        <element.component object={element} />
     {/each}
 
     <TrailLayer />
@@ -20,10 +17,6 @@
     {#each renderLayers as layer}
         <layer.component {...layer.data} />
     {/each}
-
-    {#if app.selection.editingText}
-        <TextEditing object={app.selection.editingText} />
-    {/if}
 </div>
 
 <style>

@@ -16,51 +16,53 @@ graph LR
         Editor --> Overlay[Overlay.svelte]
         Overlay --> Toolbar[Toolbar.svelte]
         Overlay --> StylePanel[StylePanel.svelte]
+        Canvas --> DynamicLayers[Layer Components]
     end
 
-    Canvas -- "renders" --> ElementComponents[Element Components]
-    
     subgraph Logic
       AppState(app.svelte.ts)
       AppState --> Camera(Camera)
       AppState --> ElementManager(ElementManager)
       AppState --> StyleManager(StyleManager)
-      AppState --> SelectionManager(SelectionManager)
+      AppState --> TrailManager(TrailManager)
+      AppState --> Toolbox(Toolbox)
       
-      AppState -- contains --> Modes(Modes)
-      AppState -- contains --> Toolbox(Toolbox)
+      Toolbox -- "manages active" --> Mode[Mode]
+      Toolbox -- "delegates to" --> Tool[Tool]
       
-      Toolbox -- "manages active" --> CurrentMode[CanvasMode]
-      Toolbox -- "creates/destroys" --> CurrentState[ModeState]
+      Mode -- "provides" --> Tool
+      Mode -- "defines" --> ModeLayer[ComponentWithData]
+      Tool -- "defines" --> ToolLayer[ComponentWithData]
       
-      Modes -- "defines" --> ModeTypes[SelectMode, DrawMode, EraserMode, HandMode]
-      ModeTypes -- "use factories" --> StateFactories[selectingState, drawingState, ...]
+      SelectMode -.-> MoveTool
+      SelectMode -.-> FrameTool
+      DrawMode -.-> BrushTool
+      EraseMode -.-> EraseTool
+      HandMode -.-> PanTool
       
       ElementManager -- holds --> Elements[StrokeElement, TextElement]
-      Elements -- define --> ElementComponents
     end
 ```
 
 ## Interaction State Machine
 
-The `Toolbox` manages the transition between modes and the active interaction state.
+The `Toolbox` manages the current `Mode` and delegates pointer events to the active `Tool`.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Mode_Idle
     
-    Mode_Idle --> ActiveState : onPointerDown(button)
-    note right of ActiveState : Factory creates a new ModeState(e.g., drawingState, panningState)
+    Mode_Idle --> Tool_Active : onPointerDown(button)
+    note right of Tool_Active : Factory creates Tool (Primary/Secondary/Tertiary)
     
-    state ActiveState {
+    state Tool_Active {
         [*] --> onMove
-        onMove --> onMove : updates state
+        onMove --> onMove : updates tool state
     }
     
-    ActiveState --> Mode_Idle : onPointerUp(calls destroy)
+    Tool_Active --> Mode_Idle : onPointerUp
     
-    Mode_Idle --> NewMode_Idle : switchMode
-    ActiveState --> NewMode_Idle : switchMode
+    Mode_Idle --> NewMode_Idle : switchMode (re-instantiates Mode)
 ```
 
 ## File Structure
@@ -69,7 +71,7 @@ stateDiagram-v2
 src/
 ├─ routes/
 │  ├─ ui/                      → UI Components (Svelte)
-│  │  ├─ layers/               → Mode-specific UI layers
+│  │  ├─ layers/               → Overlay UI (Selection, Frames, etc)
 │  │  ├─ Canvas.svelte         → Main drawing area
 │  │  ├─ Editor.svelte         → Layout container
 │  │  ├─ Overlay.svelte        → UI Layer container
@@ -77,26 +79,24 @@ src/
 │  │  └─ Toolbar.svelte        → Tool switcher
 │  ├─ logic/                   → Core Logic
 │  │  ├─ element/              → Polymorphic Elements
-│  │  │  ├─ stroke/            → Stroke Element & View
-│  │  │  ├─ text/              → Text Element & View
-│  │  │  └─ elements.svelte.ts → Provider implementation
+│  │  │  ├─ stroke/            → Stroke Element
+│  │  │  ├─ text/              → Text Element
+│  │  │  └─ elements.svelte.ts → Manager implementation
 │  │  ├─ interface/            → Shared contracts
 │  │  ├─ manager/              → System managers
 │  │  │  ├─ camera.svelte.ts   
 │  │  │  ├─ cursors.svelte.ts  
 │  │  │  ├─ style_manager.svelte.ts
+│  │  │  ├─ trail_manager.svelte.ts
 │  │  │  └─ toolbox.svelte.ts  
-│  │  ├─ mode/                 → Mode System
-│  │  │  ├─ state/             → Functional State Factories
-│  │  │  │  ├─ drawing.svelte.ts
-│  │  │  │  ├─ erasing.svelte.ts
-│  │  │  │  ├─ pan.svelte.ts
-│  │  │  │  └─ select.svelte.ts
-│  │  │  ├─ modes.svelte.ts    → Mode definitions
-│  │  │  └─ state.svelte.ts    → Base state types
+│  │  ├─ tool/                 → Mode & Tool System
+│  │  │  ├─ mode.svelte.ts     → Base interfaces
+│  │  │  ├─ drawing.svelte.ts
+│  │  │  ├─ erasing.svelte.ts
+│  │  │  ├─ pan.svelte.ts
+│  │  │  └─ select.svelte.ts
 │  │  ├─ math/                 → Utilities
-│  │  │  ├─ stroke.ts          
-│  │  │  └─ vector.ts          
+│  │  ├─ context.ts            → AppState Context
 │  │  └─ app.svelte.ts         → Main entry point (AppState)
 │  └─ +page.svelte             → App Root
 ├─ app.css                     → Global styles & variables

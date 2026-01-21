@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { getAppState } from "../../logic/context";
+    import TextEditing from "../../logic/element/text/TextEditing.svelte";
+    import type { SelectMode } from "../../logic/tool/select.svelte";
 
-    const app = getAppState();
-    const selection = app.selection;
+    const { selection }: { selection: SelectMode } = $props();
 </script>
 
 {#each selection.selectedElements as element (element.id)}
@@ -18,6 +18,10 @@
         style:width="{frame.right - frame.left}px"
         style:height="{frame.bottom - frame.top}px"
     ></div>
+{/if}
+
+{#if selection.editingText}
+    <TextEditing object={selection.editingText} />
 {/if}
 
 <style>

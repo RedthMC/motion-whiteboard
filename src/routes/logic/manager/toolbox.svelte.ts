@@ -243,10 +243,10 @@ type ModeName = "select" | "draw" | "eraser" | "hand";
 export class Toolbox {
 
     static readonly AllMode = {
-        select: new SelectMode(),
-        draw: new DrawMode(),
-        eraser: new EraseMode(),
-        hand: new HandMode()
+        select: SelectMode,
+        draw: DrawMode,
+        eraser: EraseMode,
+        hand: HandMode
     };
 
     private readonly app: ManagerProvider;
@@ -255,7 +255,7 @@ export class Toolbox {
 
     constructor(app: ManagerProvider, defaultModeName: ModeName = "select") {
         this.app = app;
-        this.mode = $state(Toolbox.AllMode[defaultModeName]);
+        this.mode = $state(new Toolbox.AllMode[defaultModeName]());
     }
 
     private getMouseCoords(event: MouseEvent | WheelEvent): MouseCoords {
@@ -289,28 +289,24 @@ export class Toolbox {
     }
 
     switchMode(mode: ModeName) {
-        this.mode = Toolbox.AllMode[mode];
+        this.mode = new Toolbox.AllMode[mode]();
         this.activeTool = undefined;
     }
 
     onPointerDown(event: PointerEvent) {
         const coords = this.getMouseCoords(event);
-        switch (event.button) {
-            case 1: // Middle button
-                this.activeTool = this.mode.getSecondaryTool?.(coords, this.app);
-                break;
-            case 2: // Right button
-                this.activeTool = this.mode.getTertiaryTool?.(coords, this.app);
-                break;
-            default: // Left button
-                this.activeTool = this.mode.getPrimaryTool(coords, this.app);
-                break;
+
+        if (event.button === 1) { // Middle button
+            this.activeTool = this.mode.getSecondaryTool?.(coords, this.app);
+        } else if (event.button === 2) { // Right button
+            this.activeTool = this.mode.getTertiaryTool?.(coords, this.app);
+        } else { // Left button
+            this.activeTool = this.mode.getPrimaryTool(coords, this.app);
         }
     }
 
     onPointerMove(event: PointerEvent) {
-        const coords = this.getMouseCoords(event);
-        this.activeTool?.onMove(coords, this.app);
+        this.activeTool?.onMove(this.getMouseCoords(event), this.app);
     }
 
     onPointerUp(event: PointerEvent) {
